@@ -1,0 +1,39 @@
+These are the headers actually used by the Chiaki GUI/CLI and the files that use them:
+
+CLI:
+common.h 
+log.h
+discovery.h
+
+GUI (Note - omitting things that are almost surely not useful like additional ffmpegdecoder instances):
+From streamsession.h:
+session.h
+opusdecoder.h (we can almost surely not bother with this for a CLI, especially since we built the lib without Opus/ffmpeg/etc support)
+ffmpegdecoder.h (again, we can drop this from a CLI-only binding)
+pidecoder.h (again, we can drop this)
+orientation.h (TBD, need to read this.  Probably is applicable to GUI only based on the name)
+
+From discoverymanager.h:
+discoveryservice.h (TBD, may be something we implement in python-native?)
+
+From controllermanager.h:
+controller.h (good chance we'll need this!  Also included from logsniffer.h)
+orientation.h (OK, looks like we might need this, again, need to read through it and controllermanager)
+
+From host.h:
+regist.h (may be needed?)
+
+From streamsession.cpp:
+base64.h
+session.h
+
+From settingsdialog.h:
+config.h (Read this to see what it's used for.  Probably disables things when building the GUI that were disabled at library build time, not applicable to us.)
+
+From main.cpp:
+session.h
+regist.h
+base64.h
+
+From settings.cpp:
+config.h
