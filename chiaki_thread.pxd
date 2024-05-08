@@ -1,5 +1,4 @@
-from libc.stdint cimport uint32_t, uint16_t, uint64_t
-from chiaki_common cimport *
+from libc.stdint cimport uint64_t
 
 cdef extern from "chiaki/thread.h":
 

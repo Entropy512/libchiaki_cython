@@ -1,11 +1,6 @@
-from libc.stdint cimport uint32_t, uint16_t, uint64_t
-from chiaki_common cimport *
+from libc.stdint cimport uint64_t
 
 cdef extern from "chiaki/stoppipe.h":
-
-    ctypedef int chiaki_socket_t
-
-    ChiakiErrorCode chiaki_socket_set_nonblock(chiaki_socket_t sock, bool nonblock)
 
     cdef struct chiaki_stop_pipe_t:
         int fds[2]

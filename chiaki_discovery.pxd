@@ -1,8 +1,5 @@
-from libc.stdint cimport uint32_t, uint16_t, uint64_t, uint8_t
-from chiaki_common cimport *
-from chiaki_thread cimport *
-from chiaki_stoppipe import *
-from chiaki_log cimport *
+from libc.stdint cimport uint64_t, uint16_t
+
 cdef extern from "chiaki/discovery.h":
 
     cpdef enum chiaki_discovery_cmd_t:
