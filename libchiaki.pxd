@@ -43,9 +43,9 @@ cdef extern from "libchiaki.h":
         CHIAKI_TARGET_PS5_UNKNOWN
         CHIAKI_TARGET_PS5_1
 
-    bool chiaki_target_is_unknown(ChiakiTarget target)
+    bint  chiaki_target_is_unknown(ChiakiTarget target)
 
-    bool chiaki_target_is_ps5(ChiakiTarget target)
+    bint  chiaki_target_is_ps5(ChiakiTarget target)
 
     ChiakiErrorCode chiaki_lib_init()
 
@@ -54,9 +54,9 @@ cdef extern from "libchiaki.h":
         CHIAKI_CODEC_H265
         CHIAKI_CODEC_H265_HDR
 
-    bool chiaki_codec_is_h265(ChiakiCodec codec)
+    bint  chiaki_codec_is_h265(ChiakiCodec codec)
 
-    bool chiaki_codec_is_hdr(ChiakiCodec codec)
+    bint  chiaki_codec_is_hdr(ChiakiCodec codec)
 
     const char* chiaki_codec_name(ChiakiCodec codec)
 
@@ -169,7 +169,7 @@ cdef extern from "libchiaki.h":
 
     void chiaki_controller_state_set_touch_pos(ChiakiControllerState* state, uint8_t id, uint16_t x, uint16_t y)
 
-    bool chiaki_controller_state_equals(ChiakiControllerState* a, ChiakiControllerState* b)
+    bint  chiaki_controller_state_equals(ChiakiControllerState* a, ChiakiControllerState* b)
 
     void chiaki_controller_state_or(ChiakiControllerState* out, ChiakiControllerState* a, ChiakiControllerState* b)
 
@@ -206,15 +206,25 @@ cdef extern from "libchiaki.h":
 
     ctypedef uint16_t ChiakiSeqNum16
 
-    bool chiaki_seq_num_16_lt(ChiakiSeqNum16 a, ChiakiSeqNum16 b)
+    bint  chiaki_seq_num_16_lt(ChiakiSeqNum16 a, ChiakiSeqNum16 b)
 
-    bool chiaki_seq_num_16_gt(ChiakiSeqNum16 a, ChiakiSeqNum16 b)
+    bint  chiaki_seq_num_16_gt(ChiakiSeqNum16 a, ChiakiSeqNum16 b)
 
     ctypedef uint32_t ChiakiSeqNum32
 
-    bool chiaki_seq_num_32_lt(ChiakiSeqNum32 a, ChiakiSeqNum32 b)
+    bint  chiaki_seq_num_32_lt(ChiakiSeqNum32 a, ChiakiSeqNum32 b)
 
-    bool chiaki_seq_num_32_gt(ChiakiSeqNum32 a, ChiakiSeqNum32 b)
+    bint  chiaki_seq_num_32_gt(ChiakiSeqNum32 a, ChiakiSeqNum32 b)
+
+    # https://groups.google.com/g/cython-users/c/kqUBhXwqHSY
+    cdef struct pthread_t:
+        pass
+
+    cdef struct pthread_mutex_t:
+        pass
+
+    cdef struct pthread_cond_t:
+        pass
 
     cdef struct chiaki_thread_t:
         pthread_t thread
@@ -234,7 +244,7 @@ cdef extern from "libchiaki.h":
     cdef struct chiaki_bool_pred_cond_t:
         ChiakiCond cond
         ChiakiMutex mutex
-        bool pred
+        bint  pred
 
     ctypedef chiaki_bool_pred_cond_t ChiakiBoolPredCond
 
@@ -378,7 +388,7 @@ cdef extern from "libchiaki.h":
         ChiakiLog* log
         ChiakiMutex mutex
         ChiakiSeqNum16 frame_index_prev
-        bool frame_index_startup
+        bint  frame_index_startup
         ChiakiPacketStats* packet_stats
 
     ctypedef chiaki_audio_receiver_t ChiakiAudioReceiver
@@ -401,14 +411,14 @@ cdef extern from "libchiaki.h":
     cdef struct chiaki_ctrl_t:
         chiaki_session_t* session
         ChiakiThread thread
-        bool should_stop
-        bool login_pin_entered
+        bint  should_stop
+        bint  login_pin_entered
         uint8_t* login_pin
         size_t login_pin_size
         ChiakiCtrlMessageQueue* msg_queue
         ChiakiStopPipe notif_pipe
         ChiakiMutex notif_mutex
-        bool login_pin_requested
+        bint  login_pin_requested
         chiaki_socket_t sock
         uint8_t recv_buf[512]
         size_t recv_buf_size
@@ -431,7 +441,7 @@ cdef extern from "libchiaki.h":
         uint64_t key_buf_key_pos_min
         size_t key_buf_start_offset
         uint64_t last_key_pos
-        bool key_buf_thread_stop
+        bint  key_buf_thread_stop
         ChiakiMutex key_buf_mutex
         ChiakiCond key_buf_cond
         ChiakiThread key_buf_thread
@@ -452,15 +462,15 @@ cdef extern from "libchiaki.h":
 
     cdef struct chiaki_reorder_queue_entry_t:
         void* user
-        bool set
+        bint  set
 
     ctypedef chiaki_reorder_queue_entry_t ChiakiReorderQueueEntry
 
     ctypedef void (*ChiakiReorderQueueDropCb)(uint64_t seq_num, void* elem_user, void* cb_user)
 
-    ctypedef bool (*ChiakiReorderQueueSeqNumGt)(uint64_t a, uint64_t b)
+    ctypedef bint  (*ChiakiReorderQueueSeqNumGt)(uint64_t a, uint64_t b)
 
-    ctypedef bool (*ChiakiReorderQueueSeqNumLt)(uint64_t a, uint64_t b)
+    ctypedef bint  (*ChiakiReorderQueueSeqNumLt)(uint64_t a, uint64_t b)
 
     ctypedef uint64_t (*ChiakiReorderQueueSeqNumAdd)(uint64_t a, uint64_t b)
 
@@ -493,7 +503,7 @@ cdef extern from "libchiaki.h":
         size_t packets_count
         ChiakiMutex mutex
         ChiakiCond cond
-        bool should_stop
+        bint  should_stop
         ChiakiThread thread
 
     ctypedef chiaki_takion_send_buffer_t ChiakiTakionSendBuffer
@@ -509,9 +519,9 @@ cdef extern from "libchiaki.h":
     cdef struct chiaki_takion_av_packet_t:
         ChiakiSeqNum16 packet_index
         ChiakiSeqNum16 frame_index
-        bool uses_nalu_info_structs
-        bool is_video
-        bool is_haptics
+        bint  uses_nalu_info_structs
+        bint  is_video
+        bint  is_haptics
         ChiakiSeqNum16 unit_index
         uint16_t units_in_frame_total
         uint16_t units_in_frame_fec
@@ -569,11 +579,11 @@ cdef extern from "libchiaki.h":
         ChiakiLog* log
         sockaddr* sa
         size_t sa_len
-        bool ip_dontfrag
+        bint  ip_dontfrag
         ChiakiTakionCallback cb
         void* cb_user
-        bool enable_crypt
-        bool enable_dualsense
+        bint  enable_crypt
+        bint  enable_dualsense
         uint8_t protocol_version
 
     ctypedef chiaki_takion_connect_info_t ChiakiTakionConnectInfo
@@ -581,7 +591,7 @@ cdef extern from "libchiaki.h":
     cdef struct chiaki_takion_t:
         ChiakiLog* log
         uint8_t version
-        bool enable_crypt
+        bint  enable_crypt
         chiaki_takion_postponed_packet_t* postponed_packets
         size_t postponed_packets_size
         size_t postponed_packets_count
@@ -603,9 +613,7 @@ cdef extern from "libchiaki.h":
         uint32_t a_rwnd
         ChiakiTakionAVPacketParse av_packet_parse
         ChiakiKeyState key_state
-        bool enable_dualsense
-
-    ctypedef chiaki_takion_t ChiakiTakion
+        bint  enable_dualsense
 
     cdef struct chiaki_video_profile_t:
         unsigned int width
@@ -637,7 +645,7 @@ cdef extern from "libchiaki.h":
         unsigned int units_fec_received
         ChiakiFrameUnit* unit_slots
         size_t unit_slots_size
-        bool flushed
+        bint  flushed
         ChiakiStreamStats stream_stats
 
     ctypedef chiaki_frame_processor_t ChiakiFrameProcessor
@@ -695,10 +703,10 @@ cdef extern from "libchiaki.h":
         ChiakiSeqNum16 state_seq_num
         ChiakiSeqNum16 history_seq_num
         ChiakiFeedbackHistoryBuffer history_buf
-        bool should_stop
+        bint  should_stop
         ChiakiControllerState controller_state_prev
         ChiakiControllerState controller_state
-        bool controller_state_changed
+        bint  controller_state_changed
         ChiakiMutex state_mutex
         ChiakiCond state_cond
 
@@ -716,15 +724,15 @@ cdef extern from "libchiaki.h":
         ChiakiVideoReceiver* video_receiver
         ChiakiAudioReceiver* haptics_receiver
         ChiakiFeedbackSender feedback_sender
-        bool feedback_sender_active
+        bint  feedback_sender_active
         ChiakiMutex feedback_sender_mutex
         ChiakiCond state_cond
         ChiakiMutex state_mutex
         int state
-        bool state_finished
-        bool state_failed
-        bool should_stop
-        bool remote_disconnected
+        bint  state_finished
+        bint  state_failed
+        bint  should_stop
+        bint  remote_disconnected
         char* remote_disconnect_reason
 
     ctypedef chiaki_stream_connection_t ChiakiStreamConnection
@@ -733,7 +741,7 @@ cdef extern from "libchiaki.h":
 
     const char* chiaki_rp_version_string(ChiakiTarget target)
 
-    ChiakiTarget chiaki_rp_version_parse(const char* rp_version_str, bool is_ps5)
+    ChiakiTarget chiaki_rp_version_parse(const char* rp_version_str, bint  is_ps5)
 
     cdef struct chiaki_connect_video_profile_t:
         unsigned int width
@@ -757,14 +765,14 @@ cdef extern from "libchiaki.h":
     void chiaki_connect_video_profile_preset(ChiakiConnectVideoProfile* profile, ChiakiVideoResolutionPreset resolution, ChiakiVideoFPSPreset fps)
 
     cdef struct chiaki_connect_info_t:
-        bool ps5
+        bint  ps5
         const char* host
         char regist_key[0x10]
         uint8_t morning[0x10]
         ChiakiConnectVideoProfile video_profile
-        bool video_profile_auto_downgrade
-        bool enable_keyboard
-        bool enable_dualsense
+        bint  video_profile_auto_downgrade
+        bint  enable_keyboard
+        bint  enable_dualsense
 
     ctypedef chiaki_connect_info_t ChiakiConnectInfo
 
@@ -785,7 +793,7 @@ cdef extern from "libchiaki.h":
 
     const char* chiaki_quit_reason_string(ChiakiQuitReason reason)
 
-    bool chiaki_quit_reason_is_error(ChiakiQuitReason reason)
+    bint  chiaki_quit_reason_is_error(ChiakiQuitReason reason)
 
     cdef struct chiaki_quit_event_t:
         ChiakiQuitReason reason
@@ -829,7 +837,7 @@ cdef extern from "libchiaki.h":
         CHIAKI_EVENT_TRIGGER_EFFECTS
 
     cdef struct _ChiakiEvent_ChiakiEvent_chiaki_event_t_login_pin_request_s:
-        bool pin_incorrect
+        bint  pin_incorrect
 
     cdef struct chiaki_event_t:
         ChiakiEventType type
@@ -843,10 +851,10 @@ cdef extern from "libchiaki.h":
 
     ctypedef void (*ChiakiEventCallback)(ChiakiEvent* event, void* user)
 
-    ctypedef bool (*ChiakiVideoSampleCallback)(uint8_t* buf, size_t buf_size, void* user)
+    ctypedef bint  (*ChiakiVideoSampleCallback)(uint8_t* buf, size_t buf_size, void* user)
 
     cdef struct _ChiakiSession_ChiakiSession_chiaki_session_t_connect_info_s:
-        bool ps5
+        bint  ps5
         addrinfo* host_addrinfos
         addrinfo* host_addrinfo_selected
         char hostname[256]
@@ -854,9 +862,9 @@ cdef extern from "libchiaki.h":
         uint8_t morning[0x10]
         uint8_t did[32]
         ChiakiConnectVideoProfile video_profile
-        bool video_profile_auto_downgrade
-        bool enable_keyboard
-        bool enable_dualsense
+        bint  video_profile_auto_downgrade
+        bint  enable_keyboard
+        bint  enable_dualsense
 
     cdef struct chiaki_session_t:
         _ChiakiSession_ChiakiSession_chiaki_session_t_connect_info_s connect_info
@@ -881,11 +889,11 @@ cdef extern from "libchiaki.h":
         ChiakiCond state_cond
         ChiakiMutex state_mutex
         ChiakiStopPipe stop_pipe
-        bool should_stop
-        bool ctrl_failed
-        bool ctrl_session_id_received
-        bool ctrl_login_pin_requested
-        bool login_pin_entered
+        bint  should_stop
+        bint  ctrl_failed
+        bint  ctrl_session_id_received
+        bint  ctrl_login_pin_requested
+        bint  login_pin_entered
         uint8_t* login_pin
         size_t login_pin_size
         ChiakiCtrl ctrl
@@ -928,7 +936,7 @@ cdef extern from "libchiaki.h":
     cdef struct chiaki_regist_info_t:
         ChiakiTarget target
         const char* host
-        bool broadcast
+        bint  broadcast
         const char* psn_online_id
         uint8_t psn_account_id[8]
         uint32_t pin
