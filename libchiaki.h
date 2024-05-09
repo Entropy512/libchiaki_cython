@@ -9,6 +9,10 @@
 
 #include <sys/socket.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //thread.h, only including typedefs depended upon by discovery.h and session.h
 typedef struct chiaki_thread_t
 {
@@ -1038,4 +1042,8 @@ CHIAKI_EXPORT void chiaki_regist_stop(ChiakiRegist *regist);
  */
 CHIAKI_EXPORT ChiakiErrorCode chiaki_regist_request_payload_format(ChiakiTarget target, const uint8_t *ambassador, uint8_t *buf, size_t *buf_size, ChiakiRPCrypt *crypt, const char *psn_online_id, const uint8_t *psn_account_id, uint32_t pin);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif //LIBCHIAKI_H
