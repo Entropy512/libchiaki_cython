@@ -1,5 +1,16 @@
 from libc.stdint cimport uint32_t, uint16_t, uint8_t, int8_t, int16_t, uint64_t, int32_t
 
+cdef extern from "sys/socket.h":
+    ctypedef uint16_t sa_family_t
+
+    struct sockaddr:
+        sa_family_t sa_family
+        char sa_data[14]
+
+cdef extern from "netinet/in.h":
+    struct addrinfo:
+        pass
+
 cdef extern from "libchiaki.h":
 
     ctypedef uint32_t chiaki_unaligned_uint32_t
