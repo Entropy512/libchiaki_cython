@@ -411,6 +411,9 @@ cdef extern from "libchiaki.h":
 
     ctypedef chiaki_rpcrypt_t ChiakiRPCrypt
 
+    cdef struct ec_group_st
+    cdef struct ec_key_st
+
     cdef struct chiaki_ecdh_t:
         ec_group_st* group
         ec_key_st* key_local
