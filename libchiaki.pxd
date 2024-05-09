@@ -307,6 +307,8 @@ cdef extern from "libchiaki.h":
 
     ctypedef chiaki_discovery_t ChiakiDiscovery
 
+    const char *chiaki_discovery_host_state_string(ChiakiDiscoveryHostState state)
+
     ChiakiErrorCode chiaki_discovery_init(ChiakiDiscovery* discovery, ChiakiLog* log, sa_family_t family)
 
     void chiaki_discovery_fini(ChiakiDiscovery* discovery)

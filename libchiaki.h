@@ -150,6 +150,7 @@ typedef struct chiaki_discovery_t
 	struct sockaddr local_addr;
 } ChiakiDiscovery;
 
+CHIAKI_EXPORT const char *chiaki_discovery_host_state_string(ChiakiDiscoveryHostState state);
 CHIAKI_EXPORT ChiakiErrorCode chiaki_discovery_init(ChiakiDiscovery *discovery, ChiakiLog *log, sa_family_t family);
 CHIAKI_EXPORT void chiaki_discovery_fini(ChiakiDiscovery *discovery);
 CHIAKI_EXPORT ChiakiErrorCode chiaki_discovery_send(ChiakiDiscovery *discovery, ChiakiDiscoveryPacket *packet, struct sockaddr *addr, size_t addr_size);
