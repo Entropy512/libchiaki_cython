@@ -1,4 +1,5 @@
 from libc.stdint cimport uint16_t, int8_t, uint32_t, uint8_t, int16_t
+from chiaki_common cimport *
 
 cdef extern from "chiaki/controller.h":
 
