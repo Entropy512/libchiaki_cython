@@ -17,5 +17,5 @@ The motivation for this project is twofold:
 Other notes:
 Showing header dependency trees of Chiaki headers:
 ```
-for j in chiaki/*.h; do echo $j; gcc -c -I. -H $j 2> >(grep chiaki); done >headertrees.txt
+for j in chiaki/*.h; do echo $j; gcc -c -I. -H $j 2> >(grep chiaki); done >headertrees_raw.txt
 ```
