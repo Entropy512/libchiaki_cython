@@ -1,0 +1,145 @@
+chiaki_audio
+ChiakiAudioHeader
+chiaki_audio_receiver
+ChiakiAudioSink
+ChiakiAudioReceiver
+chiaki_base64
+chiaki_congestion_control
+ChiakiCongestionControl
+chiaki_controller
+ChiakiControllerButton
+ChiakiControllerAnalogButton
+ChiakiControllerTouch
+ChiakiControllerState
+chiaki_ctrl
+ChiakiCtrl
+ChiakiCtrlMessageQueue
+chiaki_discovery
+cli/src/wakeup.c:	return chiaki_discovery_wakeup(log, NULL, arguments.host, credential, arguments.ps5);
+cli/src/discover.c:	CHIAKI_LOGI(log, "State:                             %s", chiaki_discovery_host_state_string(host->state));
+cli/src/discover.c:	ChiakiErrorCode err = chiaki_discovery_init(&discovery, log, AF_INET); // TODO: IPv6
+cli/src/discover.c:	err = chiaki_discovery_thread_start(&thread, &discovery, discovery_cb, NULL);
+cli/src/discover.c:		chiaki_discovery_fini(&discovery);
+cli/src/discover.c:	err = chiaki_discovery_send(&discovery, &packet, host_addr, host_addr_len);
+cli/src/discover.c:	err = chiaki_discovery_send(&discovery, &packet, host_addr, host_addr_len);
+ChiakiDiscoveryCmd
+ChiakiDiscoveryPacket
+cli/src/discover.c:	ChiakiDiscoveryPacket packet;
+ChiakiDiscoveryHostState
+ChiakiDiscoveryHost
+cli/src/discover.c:static void discovery_cb(ChiakiDiscoveryHost *host, void *user)
+ChiakiDiscovery
+cli/src/discover.c:static void discovery_cb(ChiakiDiscoveryHost *host, void *user)
+cli/src/discover.c:	ChiakiDiscovery discovery;
+cli/src/discover.c:	ChiakiDiscoveryThread thread;
+cli/src/discover.c:	ChiakiDiscoveryPacket packet;
+ChiakiDiscoveryThread
+cli/src/discover.c:	ChiakiDiscoveryThread thread;
+chiaki_discovery_service
+ChiakiDiscoveryServiceOptions
+ChiakiDiscoveryServiceHostDiscoveryInfo
+ChiakiDiscoveryService
+chiaki_ecdh
+ChiakiECDH
+chiaki_fec
+chiaki_feedback
+ChiakiFeedbackState
+ChiakiFeedbackHistoryEvent
+ChiakiFeedbackHistoryBuffer
+chiaki_feedback_sender
+ChiakiFeedbackSender
+chiaki_stream_stats
+ChiakiStreamStats
+ChiakiFrameUnit
+ChiakiFrameProcessor
+ChiakiFrameProcessorFlushResult
+chiaki_frame_processor
+chiaki_gkcrypt
+ChiakiKeyState
+ChiakiGKCrypt
+chiaki_key_state
+chiaki_http
+ChiakiHttpHeader
+ChiakiHttpResponse
+chiaki_launchspec
+ChiakiLaunchSpec
+chiaki_log
+cli/src/main.c:	chiaki_log_init(&ctx.log, CHIAKI_LOG_ALL & ~CHIAKI_LOG_VERBOSE, chiaki_log_cb_print, NULL);
+ChiakiLogLevel
+ChiakiLog
+cli/src/main.c:	ChiakiLog log;
+cli/src/main.c:static int call_subcmd(struct argp_state *state, const char *name, int (*subcmd)(ChiakiLog *log, int argc, char *argv[]))
+cli/src/wakeup.c:CHIAKI_EXPORT int chiaki_cli_cmd_wakeup(ChiakiLog *log, int argc, char *argv[])
+cli/src/discover.c:	ChiakiLog *log = user;
+cli/src/discover.c:CHIAKI_EXPORT int chiaki_cli_cmd_discover(ChiakiLog *log, int argc, char *argv[])
+cli/include/chiaki-cli.h:CHIAKI_EXPORT int chiaki_cli_cmd_discover(ChiakiLog *log, int argc, char *argv[]);
+cli/include/chiaki-cli.h:CHIAKI_EXPORT int chiaki_cli_cmd_wakeup(ChiakiLog *log, int argc, char *argv[]);
+ChiakiLogSniffer
+chiaki_orientation
+ChiakiOrientation
+ChiakiOrientationTracker
+chiaki_packet_stats
+ChiakiPacketStats
+chiaki_random
+chiaki_regist
+ChiakiRegistInfo
+ChiakiRegisteredHost
+ChiakiRegistEventType
+ChiakiRegistEvent
+ChiakiRegist
+chiaki_reorder_queue
+ChiakiReorderQueueDropStrategy
+ChiakiReorderQueueEntry
+ChiakiReorderQueue
+chiaki_rpcrypt
+ChiakiRPCrypt
+chiaki_senkusha
+ChiakiSenkusha
+ChiakiSession
+chiaki_seq_num
+chiaki_rp
+chiaki_connect
+chiaki_quit
+chiaki_session
+ChiakiConnectVideoProfile
+ChiakiVideoResolutionPreset
+ChiakiVideoFPSPreset
+ChiakiConnectInfo
+ChiakiQuitReason
+ChiakiQuitEvent
+ChiakiKeyboardEvent
+ChiakiAudioStreamInfoEvent
+ChiakiRumbleEvent
+ChiakiTriggerEffectsEvent
+ChiakiEventType
+ChiakiEvent
+ChiakiSession
+chiaki_socket
+chiaki_stop_pipe
+ChiakiStopPipe
+chiaki_stream_connection
+ChiakiSession
+ChiakiStreamConnection
+chiaki_takion
+ChiakiTakionMessageDataType
+ChiakiTakionAVPacket
+ChiakiTakionCongestionPacket
+ChiakiTakionEventType
+ChiakiTakionEvent
+ChiakiTakionConnectInfo
+ChiakiTakion
+chiaki_takion_send_buffer
+ChiakiTakionSendBuffer
+ChiakiTakionSendBufferPacket
+chiaki_thread
+chiaki_mutex
+chiaki_cond
+chiaki_bool_pred_cond
+ChiakiThread
+ChiakiMutex
+ChiakiCond
+ChiakiBoolPredCond
+chiaki_time
+ChiakiVideoProfile
+chiaki_video_receiver
+ChiakiVideoReceiver

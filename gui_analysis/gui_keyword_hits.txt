@@ -1,0 +1,379 @@
+chiaki_audio
+ChiakiAudioHeader
+chiaki_audio_receiver
+ChiakiAudioSink
+gui/src/streamsession.cpp:	ChiakiAudioSink audio_sink;
+gui/src/streamsession.cpp:		ChiakiAudioSink haptics_sink;
+ChiakiAudioReceiver
+chiaki_base64
+chiaki_congestion_control
+ChiakiCongestionControl
+chiaki_controller
+gui/src/streamsession.cpp:	chiaki_controller_state_set_idle(&keyboard_state);
+gui/src/streamsession.cpp:	chiaki_controller_state_set_idle(&setsu_state);
+gui/src/streamsession.cpp:	chiaki_controller_state_set_idle(&state);
+gui/src/streamsession.cpp:		chiaki_controller_state_or(&state, &state, &controller_state);
+gui/src/streamsession.cpp:	chiaki_controller_state_or(&state, &state, &keyboard_state);
+gui/src/streamsession.cpp:							chiaki_controller_state_stop_touch(&setsu_state, it.value());
+gui/src/streamsession.cpp:					chiaki_controller_state_stop_touch(&setsu_state, it.value());
+gui/src/streamsession.cpp:				int8_t cid = chiaki_controller_state_start_touch(&setsu_state, event->touch.x, event->touch.y);
+gui/src/streamsession.cpp:				chiaki_controller_state_set_touch_pos(&setsu_state, it.value(), event->touch.x, event->touch.y);
+gui/src/controllermanager.cpp:	chiaki_controller_state_set_idle(&this->state);
+gui/src/controllermanager.cpp:			chiaki_id = chiaki_controller_state_start_touch(&state, event.x * PS_TOUCHPAD_MAX_X, event.y * PS_TOUCHPAD_MAX_Y);
+gui/src/controllermanager.cpp:			chiaki_controller_state_set_touch_pos(&state, touch_ids[key], event.x * PS_TOUCHPAD_MAX_X, event.y * PS_TOUCHPAD_MAX_Y);
+gui/src/controllermanager.cpp:			chiaki_controller_state_stop_touch(&state, touch_ids[key]);
+ChiakiControllerButton
+gui/src/settingsdialog.cpp:		form->addRow(Settings::GetChiakiControllerButtonName(chiaki_button), button);
+gui/src/controllermanager.cpp:	ChiakiControllerButton ps_btn;
+gui/src/settings.cpp:QString Settings::GetChiakiControllerButtonName(int button)
+gui/src/settings.cpp:	auto button_name = GetChiakiControllerButtonName(chiaki_button).replace(' ', '_').toLower();
+gui/src/settings.cpp:		auto button_name = GetChiakiControllerButtonName(chiaki_button).replace(' ', '_').toLower();
+gui/include/settings.h:	// must not overlap with ChiakiControllerButton and ChiakiControllerAnalogButton
+gui/include/settings.h:		static QString GetChiakiControllerButtonName(int);
+ChiakiControllerAnalogButton
+gui/include/settings.h:	// must not overlap with ChiakiControllerButton and ChiakiControllerAnalogButton
+ChiakiControllerTouch
+ChiakiControllerState
+gui/src/streamsession.cpp:	ChiakiControllerState state;
+gui/src/controllermanager.cpp:ChiakiControllerState Controller::GetState()
+gui/include/streamsession.h:		ChiakiControllerState setsu_state;
+gui/include/streamsession.h:		ChiakiControllerState keyboard_state;
+gui/include/controllermanager.h:		ChiakiControllerState state;
+gui/include/controllermanager.h:		ChiakiControllerState GetState();
+gui/include/logsniffer.h:		ChiakiControllerState GetState();
+chiaki_ctrl
+ChiakiCtrl
+ChiakiCtrlMessageQueue
+chiaki_discovery
+gui/src/discoverymanager.cpp:		chiaki_discovery_service_fini(&service);
+gui/src/discoverymanager.cpp:		ChiakiErrorCode err = chiaki_discovery_service_init(&service, &options, &log);
+gui/src/discoverymanager.cpp:		chiaki_discovery_service_fini(&service);
+gui/src/discoverymanager.cpp:	ChiakiErrorCode err = chiaki_discovery_wakeup(&log, service_active ? &service.discovery : nullptr, host.toUtf8().constData(), credential, ps5);
+gui/src/discoverymanager.cpp:		o.ps5 = chiaki_discovery_host_is_ps5(h);
+gui/src/serveritemwidget.cpp:		bottom_text += tr("State: %1").arg(chiaki_discovery_host_state_string(display_server.discovery_host.state));
+ChiakiDiscoveryCmd
+ChiakiDiscoveryPacket
+ChiakiDiscoveryHostState
+gui/src/servericonwidget.cpp:void ServerIconWidget::SetState(bool ps5, ChiakiDiscoveryHostState state)
+gui/include/discoverymanager.h:	ChiakiDiscoveryHostState state;
+gui/include/servericonwidget.h:		ChiakiDiscoveryHostState state = CHIAKI_DISCOVERY_HOST_STATE_UNKNOWN;
+gui/include/servericonwidget.h:		void SetState(bool ps5, ChiakiDiscoveryHostState state);
+ChiakiDiscoveryHost
+gui/src/servericonwidget.cpp:void ServerIconWidget::SetState(bool ps5, ChiakiDiscoveryHostState state)
+gui/src/discoverymanager.cpp:static void DiscoveryServiceHostsCallback(ChiakiDiscoveryHost *hosts, size_t hosts_count, void *user);
+gui/src/discoverymanager.cpp:static void DiscoveryServiceHostsCallback(ChiakiDiscoveryHost *hosts, size_t hosts_count, void *user)
+gui/src/discoverymanager.cpp:		ChiakiDiscoveryHost *h = hosts + i;
+gui/include/discoverymanager.h:	ChiakiDiscoveryHostState state;
+gui/include/servericonwidget.h:		ChiakiDiscoveryHostState state = CHIAKI_DISCOVERY_HOST_STATE_UNKNOWN;
+gui/include/servericonwidget.h:		void SetState(bool ps5, ChiakiDiscoveryHostState state);
+ChiakiDiscovery
+gui/src/servericonwidget.cpp:void ServerIconWidget::SetState(bool ps5, ChiakiDiscoveryHostState state)
+gui/src/discoverymanager.cpp:static void DiscoveryServiceHostsCallback(ChiakiDiscoveryHost *hosts, size_t hosts_count, void *user);
+gui/src/discoverymanager.cpp:		ChiakiDiscoveryServiceOptions options;
+gui/src/discoverymanager.cpp:static void DiscoveryServiceHostsCallback(ChiakiDiscoveryHost *hosts, size_t hosts_count, void *user)
+gui/src/discoverymanager.cpp:		ChiakiDiscoveryHost *h = hosts + i;
+gui/include/discoverymanager.h:	ChiakiDiscoveryHostState state;
+gui/include/discoverymanager.h:		ChiakiDiscoveryService service;
+gui/include/servericonwidget.h:		ChiakiDiscoveryHostState state = CHIAKI_DISCOVERY_HOST_STATE_UNKNOWN;
+gui/include/servericonwidget.h:		void SetState(bool ps5, ChiakiDiscoveryHostState state);
+ChiakiDiscoveryThread
+chiaki_discovery_service
+gui/src/discoverymanager.cpp:		chiaki_discovery_service_fini(&service);
+gui/src/discoverymanager.cpp:		ChiakiErrorCode err = chiaki_discovery_service_init(&service, &options, &log);
+gui/src/discoverymanager.cpp:		chiaki_discovery_service_fini(&service);
+ChiakiDiscoveryServiceOptions
+gui/src/discoverymanager.cpp:		ChiakiDiscoveryServiceOptions options;
+ChiakiDiscoveryServiceHostDiscoveryInfo
+ChiakiDiscoveryService
+gui/src/discoverymanager.cpp:		ChiakiDiscoveryServiceOptions options;
+gui/include/discoverymanager.h:		ChiakiDiscoveryService service;
+chiaki_ecdh
+ChiakiECDH
+chiaki_fec
+chiaki_feedback
+ChiakiFeedbackState
+ChiakiFeedbackHistoryEvent
+ChiakiFeedbackHistoryBuffer
+chiaki_feedback_sender
+ChiakiFeedbackSender
+chiaki_stream_stats
+ChiakiStreamStats
+ChiakiFrameUnit
+ChiakiFrameProcessor
+ChiakiFrameProcessorFlushResult
+chiaki_frame_processor
+chiaki_gkcrypt
+ChiakiKeyState
+ChiakiGKCrypt
+chiaki_key_state
+chiaki_http
+ChiakiHttpHeader
+ChiakiHttpResponse
+chiaki_launchspec
+ChiakiLaunchSpec
+chiaki_log
+gui/src/streamsession.cpp:		chiaki_log_sniffer_init(&sniffer, CHIAKI_LOG_ALL, GetChiakiLog());
+gui/src/streamsession.cpp:				chiaki_log_sniffer_get_log(&sniffer),
+gui/src/streamsession.cpp:			QString log = QString::fromUtf8(chiaki_log_sniffer_get_buffer(&sniffer));
+gui/src/streamsession.cpp:			chiaki_log_sniffer_fini(&sniffer);
+gui/src/streamsession.cpp:		chiaki_log_sniffer_fini(&sniffer);
+gui/src/sessionlog.cpp:	chiaki_log_init(&log, level_mask, LogCb, this);
+gui/src/sessionlog.cpp:	chiaki_log_cb_print(level, msg, nullptr);
+gui/src/sessionlog.cpp:				QString(chiaki_log_level_char(level)),
+gui/src/main.cpp:		chiaki_log_init(&log, CHIAKI_LOG_ALL & ~CHIAKI_LOG_VERBOSE, chiaki_log_cb_print, nullptr);
+gui/src/discoverymanager.cpp:	chiaki_log_init(&log, CHIAKI_LOG_ALL & ~CHIAKI_LOG_VERBOSE, chiaki_log_cb_print, nullptr);
+gui/src/registdialog.cpp:	chiaki_log_init(&log, settings->GetLogLevelMask(), RegistExecuteDialogLogCb, this);
+gui/src/registdialog.cpp:	log_edit->appendPlainText(QString("[%1] %2").arg(chiaki_log_level_char(level)).arg(msg));
+gui/src/registdialog.cpp:	chiaki_log_cb_print(level, msg, nullptr);
+ChiakiLogLevel
+gui/src/sessionlog.cpp:static void LogCb(ChiakiLogLevel level, const char *msg, void *user);
+gui/src/sessionlog.cpp:void SessionLog::Log(ChiakiLogLevel level, const char *msg)
+gui/src/sessionlog.cpp:		static void Log(SessionLog *log, ChiakiLogLevel level, const char *msg) { log->Log(level, msg); }
+gui/src/sessionlog.cpp:static void LogCb(ChiakiLogLevel level, const char *msg, void *user)
+gui/src/main.cpp:Q_DECLARE_METATYPE(ChiakiLogLevel)
+gui/src/main.cpp:	qRegisterMetaType<ChiakiLogLevel>();
+gui/src/registdialog.cpp:Q_DECLARE_METATYPE(ChiakiLogLevel)
+gui/src/registdialog.cpp:static void RegistExecuteDialogLogCb(ChiakiLogLevel level, const char *msg, void *user);
+gui/src/registdialog.cpp:void RegistExecuteDialog::Log(ChiakiLogLevel level, QString msg)
+gui/src/registdialog.cpp:		static void Log(RegistExecuteDialog *dialog, ChiakiLogLevel level, QString msg)
+gui/src/registdialog.cpp:			{ QMetaObject::invokeMethod(dialog, "Log", Qt::ConnectionType::QueuedConnection, Q_ARG(ChiakiLogLevel, level), Q_ARG(QString, msg)); }
+gui/src/registdialog.cpp:static void RegistExecuteDialogLogCb(ChiakiLogLevel level, const char *msg, void *user)
+gui/include/sessionlog.h:		void Log(ChiakiLogLevel level, const char *msg);
+gui/include/registdialog.h:		void Log(ChiakiLogLevel level, QString msg);
+ChiakiLog
+gui/src/streamsession.cpp:		if(chiaki_pi_decoder_init(pi_decoder, log.GetChiakiLog()) != CHIAKI_ERR_SUCCESS)
+gui/src/streamsession.cpp:		ChiakiLogSniffer sniffer;
+gui/src/streamsession.cpp:		chiaki_log_sniffer_init(&sniffer, CHIAKI_LOG_ALL, GetChiakiLog());
+gui/src/streamsession.cpp:		ffmpeg_decoder->log = GetChiakiLog();
+gui/src/streamsession.cpp:	chiaki_opus_decoder_init(&opus_decoder, log.GetChiakiLog());
+gui/src/streamsession.cpp:		CHIAKI_LOGW(GetChiakiLog(), "A codec other than H264 was requested for Pi Decoder. Falling back to it.");
+gui/src/streamsession.cpp:	err = chiaki_session_init(&session, &chiaki_connect_info, GetChiakiLog());
+gui/src/streamsession.cpp:			CHIAKI_LOGI(log.GetChiakiLog(), "Controller %d disconnected", controller->GetDeviceID());
+gui/src/streamsession.cpp:				CHIAKI_LOGE(log.GetChiakiLog(), "Failed to open controller %d", controller_id);
+gui/src/streamsession.cpp:			CHIAKI_LOGI(log.GetChiakiLog(), "Controller %d opened: \"%s\"", controller_id, controller->GetName().toLocal8Bit().constData());
+gui/src/streamsession.cpp:		CHIAKI_LOGE(log.GetChiakiLog(), "Audio Format with %u channels @ %u Hz not supported by Audio Device %s",
+gui/src/streamsession.cpp:	CHIAKI_LOGI(log.GetChiakiLog(), "Audio Device %s opened with %u channels @ %u Hz, buffer size %u",
+gui/src/streamsession.cpp:		CHIAKI_LOGE(log.GetChiakiLog(), "Could not initialize SDL Audio for haptics output: %s", SDL_GetError());
+gui/src/streamsession.cpp:			log.GetChiakiLog(),
+gui/src/streamsession.cpp:		CHIAKI_LOGW(this->log.GetChiakiLog(), "Haptics already connected to an attached DualSense controller, ignoring additional controllers.");
+gui/src/streamsession.cpp:			CHIAKI_LOGE(log.GetChiakiLog(), "Could not open SDL Audio Device %s for haptics output: %s", device_name, SDL_GetError());
+gui/src/streamsession.cpp:		CHIAKI_LOGI(log.GetChiakiLog(), "Haptics Audio Device '%s' opened with %d channels @ %d Hz, buffer size %u (driver=%s)", device_name, have.channels, have.freq, have.size, SDL_GetCurrentAudioDriver());
+gui/src/streamsession.cpp:	CHIAKI_LOGW(log.GetChiakiLog(), "DualSense features were enabled and a DualSense is connected, but could not find the DualSense audio device!");
+gui/src/streamsession.cpp:		CHIAKI_LOGE(log.GetChiakiLog(), "Failed to resample haptics audio: %s", SDL_GetError());
+gui/src/streamsession.cpp:		CHIAKI_LOGE(log.GetChiakiLog(), "Failed to submit haptics audio to device: %s", SDL_GetError());
+gui/src/streamsession.cpp:						CHIAKI_LOGI(GetChiakiLog(), "Connected Setsu Touchpad Device %s", event->path);
+gui/src/streamsession.cpp:						CHIAKI_LOGE(GetChiakiLog(), "Failed to connect to Setsu Touchpad Device %s", event->path);
+gui/src/streamsession.cpp:						CHIAKI_LOGI(GetChiakiLog(), "Setsu Motion Device %s detected there is already one connected",
+gui/src/streamsession.cpp:						CHIAKI_LOGI(GetChiakiLog(), "Connected Setsu Motion Device %s", event->path);
+gui/src/streamsession.cpp:						CHIAKI_LOGE(GetChiakiLog(), "Failed to connect to Setsu Motion Device %s", event->path);
+gui/src/streamsession.cpp:					CHIAKI_LOGI(GetChiakiLog(), "Setsu Touchpad Device %s disconnected", event->path);
+gui/src/streamsession.cpp:					CHIAKI_LOGI(GetChiakiLog(), "Setsu Motion Device %s disconnected", event->path);
+gui/src/sessionlog.cpp:static void LogCb(ChiakiLogLevel level, const char *msg, void *user);
+gui/src/sessionlog.cpp:void SessionLog::Log(ChiakiLogLevel level, const char *msg)
+gui/src/sessionlog.cpp:		static void Log(SessionLog *log, ChiakiLogLevel level, const char *msg) { log->Log(level, msg); }
+gui/src/sessionlog.cpp:static void LogCb(ChiakiLogLevel level, const char *msg, void *user)
+gui/src/main.cpp:Q_DECLARE_METATYPE(ChiakiLogLevel)
+gui/src/main.cpp:	int (*cmd)(ChiakiLog *log, int argc, char *argv[]);
+gui/src/main.cpp:	qRegisterMetaType<ChiakiLogLevel>();
+gui/src/main.cpp:		ChiakiLog log;
+gui/src/avopenglwidget.cpp:bool AVOpenGLFrame::Update(AVFrame *frame, ChiakiLog *log)
+gui/src/avopenglwidget.cpp:	CHIAKI_LOGI(session->GetChiakiLog(), "OpenGL initialized with version \"%s\"", gl_version ? gl_version : "(null)");
+gui/src/avopenglwidget.cpp:		CHIAKI_LOGE(session->GetChiakiLog(), "Failed to Compile Shader:\n%s", info_log.data());
+gui/src/avopenglwidget.cpp:		CHIAKI_LOGE(session->GetChiakiLog(), "Failed to Link Shader Program:\n%s", info_log.data());
+gui/src/avopenglwidget.cpp:		CHIAKI_LOGE(session->GetChiakiLog(), "Failed to create upload OpenGL context");
+gui/src/avopenglframeuploader.cpp:		CHIAKI_LOGE(session->GetChiakiLog(), "Session has no ffmpeg decoder");
+gui/src/registdialog.cpp:Q_DECLARE_METATYPE(ChiakiLogLevel)
+gui/src/registdialog.cpp:static void RegistExecuteDialogLogCb(ChiakiLogLevel level, const char *msg, void *user);
+gui/src/registdialog.cpp:void RegistExecuteDialog::Log(ChiakiLogLevel level, QString msg)
+gui/src/registdialog.cpp:		static void Log(RegistExecuteDialog *dialog, ChiakiLogLevel level, QString msg)
+gui/src/registdialog.cpp:			{ QMetaObject::invokeMethod(dialog, "Log", Qt::ConnectionType::QueuedConnection, Q_ARG(ChiakiLogLevel, level), Q_ARG(QString, msg)); }
+gui/src/registdialog.cpp:static void RegistExecuteDialogLogCb(ChiakiLogLevel level, const char *msg, void *user)
+gui/include/streamsession.h:		ChiakiLog *GetChiakiLog()				{ return log.GetChiakiLog(); }
+gui/include/discoverymanager.h:		ChiakiLog log;
+gui/include/sessionlog.h:		ChiakiLog log;
+gui/include/sessionlog.h:		void Log(ChiakiLogLevel level, const char *msg);
+gui/include/sessionlog.h:		ChiakiLog *GetChiakiLog()	{ return &log; }
+gui/include/avopenglwidget.h:	bool Update(AVFrame *frame, ChiakiLog *log);
+gui/include/registdialog.h:		ChiakiLog log;
+gui/include/registdialog.h:		void Log(ChiakiLogLevel level, QString msg);
+ChiakiLogSniffer
+gui/src/streamsession.cpp:		ChiakiLogSniffer sniffer;
+chiaki_orientation
+gui/src/streamsession.cpp:	chiaki_orientation_tracker_init(&orient_tracker);
+gui/src/streamsession.cpp:			chiaki_orientation_tracker_apply_to_controller_state(&orient_tracker, &setsu_state);
+gui/src/streamsession.cpp:					chiaki_orientation_tracker_init(&orient_tracker);
+gui/src/streamsession.cpp:			chiaki_orientation_tracker_update(&orient_tracker,
+gui/src/controllermanager.cpp:	chiaki_orientation_tracker_init(&this->orientation_tracker);
+gui/src/controllermanager.cpp:	chiaki_orientation_tracker_update(
+gui/src/controllermanager.cpp:	chiaki_orientation_tracker_apply_to_controller_state(&orientation_tracker, &state);
+ChiakiOrientation
+gui/include/streamsession.h:		ChiakiOrientationTracker orient_tracker;
+gui/include/controllermanager.h:		ChiakiOrientationTracker orientation_tracker;
+ChiakiOrientationTracker
+gui/include/streamsession.h:		ChiakiOrientationTracker orient_tracker;
+gui/include/controllermanager.h:		ChiakiOrientationTracker orientation_tracker;
+chiaki_packet_stats
+ChiakiPacketStats
+chiaki_random
+chiaki_regist
+gui/src/registdialog.cpp:	chiaki_regist_start(&regist, &log, &regist_info, RegistExecuteDialogRegistCb, this);
+gui/src/registdialog.cpp:	chiaki_regist_stop(&regist);
+gui/src/registdialog.cpp:	chiaki_regist_fini(&regist);
+ChiakiRegistInfo
+gui/src/registdialog.cpp:	ChiakiRegistInfo info = {};
+gui/src/registdialog.cpp:RegistExecuteDialog::RegistExecuteDialog(Settings *settings, const ChiakiRegistInfo &regist_info, QWidget *parent)
+gui/include/registdialog.h:		explicit RegistExecuteDialog(Settings *settings, const ChiakiRegistInfo &regist_info, QWidget *parent = nullptr);
+ChiakiRegisteredHost
+gui/src/host.cpp:RegisteredHost::RegisteredHost(const ChiakiRegisteredHost &chiaki_host)
+gui/include/host.h:		RegisteredHost(const ChiakiRegisteredHost &chiaki_host);
+ChiakiRegistEventType
+gui/src/main.cpp:	qRegisterMetaType<ChiakiRegistEventType>();
+gui/include/registdialog.h:Q_DECLARE_METATYPE(ChiakiRegistEventType)
+ChiakiRegistEvent
+gui/src/main.cpp:	qRegisterMetaType<ChiakiRegistEventType>();
+gui/src/registdialog.cpp:static void RegistExecuteDialogRegistCb(ChiakiRegistEvent *event, void *user);
+gui/src/registdialog.cpp:		static void RegistEvent(RegistExecuteDialog *dialog, ChiakiRegistEvent *event)
+gui/src/registdialog.cpp:static void RegistExecuteDialogRegistCb(ChiakiRegistEvent *event, void *user)
+gui/include/registdialog.h:Q_DECLARE_METATYPE(ChiakiRegistEventType)
+ChiakiRegist
+gui/src/main.cpp:	qRegisterMetaType<ChiakiRegistEventType>();
+gui/src/host.cpp:RegisteredHost::RegisteredHost(const ChiakiRegisteredHost &chiaki_host)
+gui/src/registdialog.cpp:	ChiakiRegistInfo info = {};
+gui/src/registdialog.cpp:static void RegistExecuteDialogRegistCb(ChiakiRegistEvent *event, void *user);
+gui/src/registdialog.cpp:RegistExecuteDialog::RegistExecuteDialog(Settings *settings, const ChiakiRegistInfo &regist_info, QWidget *parent)
+gui/src/registdialog.cpp:		static void RegistEvent(RegistExecuteDialog *dialog, ChiakiRegistEvent *event)
+gui/src/registdialog.cpp:static void RegistExecuteDialogRegistCb(ChiakiRegistEvent *event, void *user)
+gui/include/host.h:		RegisteredHost(const ChiakiRegisteredHost &chiaki_host);
+gui/include/registdialog.h:		ChiakiRegist regist;
+gui/include/registdialog.h:		explicit RegistExecuteDialog(Settings *settings, const ChiakiRegistInfo &regist_info, QWidget *parent = nullptr);
+gui/include/registdialog.h:Q_DECLARE_METATYPE(ChiakiRegistEventType)
+chiaki_reorder_queue
+ChiakiReorderQueueDropStrategy
+ChiakiReorderQueueEntry
+ChiakiReorderQueue
+chiaki_rpcrypt
+ChiakiRPCrypt
+chiaki_senkusha
+ChiakiSenkusha
+ChiakiSession
+gui/include/streamsession.h:		ChiakiSession session;
+chiaki_seq_num
+chiaki_rp
+chiaki_connect
+gui/src/streamsession.cpp:	ChiakiConnectInfo chiaki_connect_info = {};
+gui/src/streamsession.cpp:	chiaki_connect_info.ps5 = chiaki_target_is_ps5(connect_info.target);
+gui/src/streamsession.cpp:	chiaki_connect_info.host = host_str.constData();
+gui/src/streamsession.cpp:	chiaki_connect_info.video_profile = connect_info.video_profile;
+gui/src/streamsession.cpp:	chiaki_connect_info.video_profile_auto_downgrade = true;
+gui/src/streamsession.cpp:	chiaki_connect_info.enable_keyboard = false;
+gui/src/streamsession.cpp:	chiaki_connect_info.enable_dualsense = connect_info.enable_dualsense;
+gui/src/streamsession.cpp:	if(connect_info.decoder == Decoder::Pi && chiaki_connect_info.video_profile.codec != CHIAKI_CODEC_H264)
+gui/src/streamsession.cpp:		chiaki_connect_info.video_profile.codec = CHIAKI_CODEC_H264;
+gui/src/streamsession.cpp:	if(connect_info.regist_key.size() != sizeof(chiaki_connect_info.regist_key))
+gui/src/streamsession.cpp:	memcpy(chiaki_connect_info.regist_key, connect_info.regist_key.constData(), sizeof(chiaki_connect_info.regist_key));
+gui/src/streamsession.cpp:	if(connect_info.morning.size() != sizeof(chiaki_connect_info.morning))
+gui/src/streamsession.cpp:	memcpy(chiaki_connect_info.morning, connect_info.morning.constData(), sizeof(chiaki_connect_info.morning));
+gui/src/streamsession.cpp:	err = chiaki_session_init(&session, &chiaki_connect_info, GetChiakiLog());
+gui/src/settings.cpp:	chiaki_connect_video_profile_preset(&profile, GetResolution(), GetFPS());
+chiaki_quit
+gui/src/streamwindow.cpp:	if(chiaki_quit_reason_is_error(reason))
+gui/src/streamwindow.cpp:		QString m = tr("Chiaki Session has quit") + ":\n" + chiaki_quit_reason_string(reason);
+chiaki_session
+gui/src/streamsession.cpp:	err = chiaki_session_init(&session, &chiaki_connect_info, GetChiakiLog());
+gui/src/streamsession.cpp:	chiaki_session_set_audio_sink(&session, &audio_sink);
+gui/src/streamsession.cpp:		chiaki_session_set_haptics_sink(&session, &haptics_sink);
+gui/src/streamsession.cpp:		chiaki_session_set_video_sample_cb(&session, chiaki_pi_decoder_video_sample_cb, pi_decoder);
+gui/src/streamsession.cpp:		chiaki_session_set_video_sample_cb(&session, chiaki_ffmpeg_decoder_video_sample_cb, ffmpeg_decoder);
+gui/src/streamsession.cpp:	chiaki_session_set_event_cb(&session, EventCb, this);
+gui/src/streamsession.cpp:	chiaki_session_join(&session);
+gui/src/streamsession.cpp:	chiaki_session_fini(&session);
+gui/src/streamsession.cpp:	ChiakiErrorCode err = chiaki_session_start(&session);
+gui/src/streamsession.cpp:		chiaki_session_fini(&session);
+gui/src/streamsession.cpp:	chiaki_session_stop(&session);
+gui/src/streamsession.cpp:	chiaki_session_goto_bed(&session);
+gui/src/streamsession.cpp:	chiaki_session_set_login_pin(&session, (const uint8_t *)data.constData(), data.size());
+gui/src/streamsession.cpp:	chiaki_session_set_controller_state(&session, &state);
+gui/src/sessionlog.cpp:	static const QString session_log_wildcard = "chiaki_session_*.log";
+gui/src/sessionlog.cpp:	static const QRegularExpression session_log_regex("chiaki_session_(.*).log");
+gui/src/sessionlog.cpp:	QString filename = "chiaki_session_" + QDateTime::currentDateTime().toString(date_format) + ".log";
+ChiakiConnectVideoProfile
+gui/src/settings.cpp:ChiakiConnectVideoProfile Settings::GetVideoProfile()
+gui/src/settings.cpp:	ChiakiConnectVideoProfile profile = {};
+gui/include/streamsession.h:	ChiakiConnectVideoProfile video_profile;
+gui/include/settings.h:		ChiakiConnectVideoProfile GetVideoProfile();
+ChiakiVideoResolutionPreset
+gui/src/settingsdialog.cpp:	static const QList<QPair<ChiakiVideoResolutionPreset, const char *>> resolution_strings = {
+gui/src/settingsdialog.cpp:	settings->SetResolution((ChiakiVideoResolutionPreset)resolution_combo_box->currentData().toInt());
+gui/src/settings.cpp:static const QMap<ChiakiVideoResolutionPreset, QString> resolutions = {
+gui/src/settings.cpp:static const ChiakiVideoResolutionPreset resolution_default = CHIAKI_VIDEO_RESOLUTION_PRESET_720p;
+gui/src/settings.cpp:ChiakiVideoResolutionPreset Settings::GetResolution() const
+gui/src/settings.cpp:void Settings::SetResolution(ChiakiVideoResolutionPreset resolution)
+gui/include/settings.h:		ChiakiVideoResolutionPreset GetResolution() const;
+gui/include/settings.h:		void SetResolution(ChiakiVideoResolutionPreset resolution);
+ChiakiVideoFPSPreset
+gui/src/settingsdialog.cpp:	static const QList<QPair<ChiakiVideoFPSPreset, QString>> fps_strings = {
+gui/src/settingsdialog.cpp:	settings->SetFPS((ChiakiVideoFPSPreset)fps_combo_box->currentData().toInt());
+gui/src/settings.cpp:static const QMap<ChiakiVideoFPSPreset, int> fps_values = {
+gui/src/settings.cpp:static const ChiakiVideoFPSPreset fps_default = CHIAKI_VIDEO_FPS_PRESET_60;
+gui/src/settings.cpp:ChiakiVideoFPSPreset Settings::GetFPS() const
+gui/src/settings.cpp:void Settings::SetFPS(ChiakiVideoFPSPreset fps)
+gui/include/settings.h:		ChiakiVideoFPSPreset GetFPS() const;
+gui/include/settings.h:		void SetFPS(ChiakiVideoFPSPreset fps);
+ChiakiConnectInfo
+gui/src/streamsession.cpp:	ChiakiConnectInfo chiaki_connect_info = {};
+gui/src/main.cpp:			if(regist_key.length() > sizeof(ChiakiConnectInfo::regist_key))
+gui/src/main.cpp:					(unsigned long long)sizeof(ChiakiConnectInfo::regist_key),
+gui/src/main.cpp:			regist_key += QByteArray(sizeof(ChiakiConnectInfo::regist_key) - regist_key.length(), 0);
+gui/src/main.cpp:			if(morning.length() != sizeof(ChiakiConnectInfo::morning))
+gui/src/main.cpp:					(unsigned long long)sizeof(ChiakiConnectInfo::morning),
+gui/src/main.cpp:				printf("Given morning has invalid size (expected %llu)", (unsigned long long)sizeof(ChiakiConnectInfo::morning));
+ChiakiQuitReason
+gui/src/streamwindow.cpp:void StreamWindow::SessionQuit(ChiakiQuitReason reason, const QString &reason_str)
+gui/src/main.cpp:	qRegisterMetaType<ChiakiQuitReason>();
+gui/include/streamsession.h:		void SessionQuit(ChiakiQuitReason reason, const QString &reason_str);
+gui/include/streamsession.h:Q_DECLARE_METATYPE(ChiakiQuitReason)
+gui/include/streamwindow.h:		void SessionQuit(ChiakiQuitReason reason, const QString &reason_str);
+ChiakiQuitEvent
+ChiakiKeyboardEvent
+ChiakiAudioStreamInfoEvent
+ChiakiRumbleEvent
+ChiakiTriggerEffectsEvent
+ChiakiEventType
+ChiakiEvent
+gui/src/streamsession.cpp:static void EventCb(ChiakiEvent *event, void *user);
+gui/src/streamsession.cpp:void StreamSession::Event(ChiakiEvent *event)
+gui/src/streamsession.cpp:		static void Event(StreamSession *session, ChiakiEvent *event)							{ session->Event(event); }
+gui/src/streamsession.cpp:static void EventCb(ChiakiEvent *event, void *user)
+gui/include/streamsession.h:		void Event(ChiakiEvent *event);
+ChiakiSession
+gui/include/streamsession.h:		ChiakiSession session;
+chiaki_socket
+chiaki_stop_pipe
+ChiakiStopPipe
+chiaki_stream_connection
+ChiakiSession
+gui/include/streamsession.h:		ChiakiSession session;
+ChiakiStreamConnection
+chiaki_takion
+ChiakiTakionMessageDataType
+ChiakiTakionAVPacket
+ChiakiTakionCongestionPacket
+ChiakiTakionEventType
+ChiakiTakionEvent
+ChiakiTakionConnectInfo
+ChiakiTakion
+chiaki_takion_send_buffer
+ChiakiTakionSendBuffer
+ChiakiTakionSendBufferPacket
+chiaki_thread
+chiaki_mutex
+chiaki_cond
+chiaki_bool_pred_cond
+ChiakiThread
+ChiakiMutex
+ChiakiCond
+ChiakiBoolPredCond
+chiaki_time
+ChiakiVideoProfile
+chiaki_video_receiver
+ChiakiVideoReceiver
