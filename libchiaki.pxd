@@ -422,6 +422,12 @@ cdef extern from "libchiaki.h":
 
     ctypedef chiaki_ctrl_message_queue_t ChiakiCtrlMessageQueue
 
+    cdef struct chiaki_ctrl_message_queue_t:
+        ChiakiCtrlMessageQueue* next
+        uint16_t type
+        uint8_t* payload
+        size_t payload_size
+
     cdef struct chiaki_ctrl_t:
         chiaki_session_t* session
         ChiakiThread thread
@@ -505,9 +511,16 @@ cdef extern from "libchiaki.h":
 
     ctypedef chiaki_reorder_queue_t ChiakiReorderQueue
 
-    ctypedef chiaki_takion_t ChiakiTakion
+    cdef struct chiaki_takion_send_buffer_packet_t:
+        ChiakiSeqNum32 seq_num
+        uint64_t tries
+        uint64_t last_send_ms
+        uint8_t* buf
+        size_t buf_size
 
     ctypedef chiaki_takion_send_buffer_packet_t ChiakiTakionSendBufferPacket
+
+    ctypedef chiaki_takion_t ChiakiTakion
 
     cdef struct chiaki_takion_send_buffer_t:
         ChiakiLog* log
@@ -601,6 +614,12 @@ cdef extern from "libchiaki.h":
         uint8_t protocol_version
 
     ctypedef chiaki_takion_connect_info_t ChiakiTakionConnectInfo
+
+    cdef struct chiaki_takion_postponed_packet_t:
+        uint8_t* buf
+        size_t buf_size
+
+    ctypedef chiaki_takion_postponed_packet_t ChiakiTakionPostponedPacket
 
     cdef struct chiaki_takion_t:
         ChiakiLog* log
