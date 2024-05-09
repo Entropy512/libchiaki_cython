@@ -1,5 +1,9 @@
 from libc.stdint cimport uint32_t, uint16_t, uint8_t, int8_t, int16_t, uint64_t, int32_t
 
+cdef extern from "netinet/in.h":
+    struct addrinfo:
+        pass
+
 cdef extern from "sys/socket.h":
     ctypedef uint16_t sa_family_t
 
@@ -7,9 +11,11 @@ cdef extern from "sys/socket.h":
         sa_family_t sa_family
         char sa_data[14]
 
-cdef extern from "netinet/in.h":
-    struct addrinfo:
-        pass
+cdef extern from "netdb.h":
+    int32_t getaddrinfo(const char *node,
+                    const char *service,
+                    const addrinfo *hints,
+                    addrinfo **res)
 
 cdef extern from "libchiaki.h":
 
