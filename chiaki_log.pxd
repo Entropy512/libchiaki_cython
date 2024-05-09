@@ -1,4 +1,5 @@
 from libc.stdint cimport uint32_t, uint8_t
+from chiaki_common cimport *
 
 cdef extern from "chiaki/log.h":
 
