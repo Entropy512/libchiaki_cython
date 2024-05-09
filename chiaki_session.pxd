@@ -1,5 +1,21 @@
 from libc.stdint cimport uint32_t, uint8_t, uint64_t
 
+'''
+This is a gigantic mess.  I'm not sure if there's any better way to do this without significantly restructuring Chiaki's source code itself, other than clone-and-owning a completely separate header file
+that is stripped down.  Currently a "from" import for every header file included from session.h ...
+'''
+from chiaki_common cimport *
+from chiaki_streamconnection cimport *
+from chiaki_thread cimport *
+from chiaki_log cimport *
+from chiaki_ctrl cimport *
+from chiaki_rpcrypt cimport *
+from chiaki_takion cimport *
+from chiaki_ecdh cimport *
+from chiaki_audio cimport *
+from chiaki_controller cimport *
+from chiaki_stoppipe cimport *
+
 cdef extern from "chiaki/session.h":
 
     const char* chiaki_rp_application_reason_string(uint32_t reason)
