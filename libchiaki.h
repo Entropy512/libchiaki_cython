@@ -285,6 +285,14 @@ typedef struct chiaki_ecdh_t
 //ctrl.h - session.h depends on this typedef
 typedef struct chiaki_ctrl_message_queue_t ChiakiCtrlMessageQueue;
 
+struct chiaki_ctrl_message_queue_t
+{
+	ChiakiCtrlMessageQueue *next;
+	uint16_t type;
+	uint8_t *payload;
+	size_t payload_size;
+};
+
 typedef struct chiaki_ctrl_t
 {
 	struct chiaki_session_t *session;
@@ -383,7 +391,14 @@ typedef struct chiaki_reorder_queue_t
 //takionsendbuffer.h - takion depends on this
 typedef struct chiaki_takion_t ChiakiTakion;
 
-typedef struct chiaki_takion_send_buffer_packet_t ChiakiTakionSendBufferPacket;
+typedef struct chiaki_takion_send_buffer_packet_t
+{
+	ChiakiSeqNum32 seq_num;
+	uint64_t tries;
+	uint64_t last_send_ms; // chiaki_time_now_monotonic_ms()
+	uint8_t *buf;
+	size_t buf_size;
+} ChiakiTakionSendBufferPacket;
 
 typedef struct chiaki_takion_send_buffer_t
 {
@@ -487,8 +502,13 @@ typedef struct chiaki_takion_connect_info_t
 	uint8_t protocol_version;
 } ChiakiTakionConnectInfo;
 
+typedef struct chiaki_takion_postponed_packet_t
+{
+	uint8_t *buf;
+	size_t buf_size;
+} ChiakiTakionPostponedPacket;
 
-typedef struct chiaki_takion_t
+struct chiaki_takion_t
 {
 	ChiakiLog *log;
 	uint8_t version;
@@ -542,7 +562,7 @@ typedef struct chiaki_takion_t
 	ChiakiKeyState key_state;
 
 	bool enable_dualsense;
-} ChiakiTakion;
+};
 
 //videoprofile.h - videoreceiveer.h depends on this typedef
 typedef struct chiaki_video_profile_t
