@@ -101,5 +101,4 @@ def run_discovery():
         chiaki_log(&log, CHIAKI_LOG_ERROR, "Failed to send discovery packet for PS5: {}".format(chiaki_error_string(err)))
     
     while(cbuser.discovery_is_running):
-        print(cbuser.discovery_is_running)
-        sleep(1)
+        sleep(0)
