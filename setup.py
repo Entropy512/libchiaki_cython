@@ -8,7 +8,13 @@ discovery_extension = Extension(
     libraries=["chiaki", "crypto", "ssl", "gf_complete", "jerasure"]
 )
 
+discovery_extension = Extension(
+    name="chiaki_wakeup",
+    sources=["wakeup.pyx"],
+    libraries=["chiaki", "crypto", "ssl", "gf_complete", "jerasure"]
+)
+
 setup(
-    name="chiaki_discovery",
+    name="chiaki",
     ext_modules=cythonize([discovery_extension])
 )
