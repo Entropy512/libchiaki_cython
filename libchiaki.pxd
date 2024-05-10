@@ -342,6 +342,8 @@ cdef extern from "libchiaki.h":
 
     ChiakiErrorCode chiaki_discovery_thread_stop(ChiakiDiscoveryThread* thread)
 
+    ChiakiErrorCode chiaki_discovery_wakeup(ChiakiLog *log, ChiakiDiscovery *discovery, const char *host, uint64_t user_credential, bint ps5);
+
     ctypedef void (*ChiakiDiscoveryServiceCb)(ChiakiDiscoveryHost* hosts, size_t hosts_count, void* user)
 
     cdef struct chiaki_discovery_service_options_t:
