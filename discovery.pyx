@@ -6,14 +6,20 @@ import socket
 import struct
 from time import sleep
 
+'''
+Trying to use a Cython global variable in a callback doesn't seem to play nice even if you use the "global" keyword
+Fortunately, we can pass a pointer to an arbitrary user structure to ChiakiDiscoveryCb functions, and modify that
+'''
 cdef struct DiscoveryCbData:
     ChiakiLog *log
     bint discovery_is_running
 
+#Basically copied from chiaki-cli's discovery callback
 cdef void discovery_cb(ChiakiDiscoveryHost *host, void *user) noexcept:
     cdef DiscoveryCbData *cbuser = <DiscoveryCbData *> user
     cdef ChiakiLog *log = <ChiakiLog *>cbuser.log
 
+    #WARNING:  Don't mix Python's print() with anything that uses C printing functions.  C functions appear to flush immediately, but not Python's print(), which can lead to issues diagnosinc exactly where something segfaults
     chiaki_log(log, CHIAKI_LOG_INFO, "--")
     chiaki_log(log, CHIAKI_LOG_INFO, "Discovered Host:")
     chiaki_log(log, CHIAKI_LOG_INFO, "State:                             %s", chiaki_discovery_host_state_string(host.state))
@@ -48,7 +54,7 @@ cdef void discovery_cb(ChiakiDiscoveryHost *host, void *user) noexcept:
     cbuser.discovery_is_running = 0
 
 
-
+#Basically cythonized version of the chiaki-cli discovery function
 def run_discovery():
     cdef ChiakiLog log
     chiaki_log_init(&log, CHIAKI_LOG_INFO | CHIAKI_LOG_ERROR | CHIAKI_LOG_DEBUG, chiaki_log_cb_print, NULL)
