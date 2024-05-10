@@ -99,7 +99,7 @@ cdef extern from "libchiaki.h":
 
     void chiaki_log_cb_print(ChiakiLogLevel level, const char* msg, void* user)
 
-    void chiaki_log(ChiakiLog* log, ChiakiLogLevel level, const char* fmt)
+    void chiaki_log(ChiakiLog* log, ChiakiLogLevel level, const char* fmt, ...)
 
     void chiaki_log_hexdump(ChiakiLog* log, ChiakiLogLevel level, const uint8_t* buf, size_t buf_size)
 
@@ -271,6 +271,12 @@ cdef extern from "libchiaki.h":
     ctypedef chiaki_stop_pipe_t ChiakiStopPipe
 
     ctypedef int chiaki_socket_t
+
+    char* CHIAKI_DISCOVERY_PROTOCOL_VERSION_PS4
+    char* CHIAKI_DISCOVERY_PROTOCOL_VERSION_PS5
+
+    uint16_t CHIAKI_DISCOVERY_PORT_PS4
+    uint16_t CHIAKI_DISCOVERY_PORT_PS5
 
     cpdef enum chiaki_discovery_cmd_t:
         CHIAKI_DISCOVERY_CMD_SRCH
