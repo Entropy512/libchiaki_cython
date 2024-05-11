@@ -116,14 +116,15 @@ cdef class ChiakiStreamSession:
 
         self.SendFeedbackState()
 
-    def HandleButtonEvent(self, key, pressed):
+    def HandleButtonEvent(self, key, pressed, sendImm = True):
         cdef ChiakiControllerButton button = key
         if(pressed):
             self.keyboard_state.buttons |= button
         else:
             self.keyboard_state.buttons &= ~button
 
-        self.SendFeedbackState()
+        if(sendImm):
+            self.SendFeedbackState()
 
     cdef void SendFeedbackState(self):
         cdef ChiakiControllerState state
