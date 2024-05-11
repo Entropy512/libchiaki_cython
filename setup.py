@@ -14,6 +14,12 @@ discovery_extension = Extension(
     libraries=["chiaki", "crypto", "ssl", "gf_complete", "jerasure"]
 )
 
+discovery_extension = Extension(
+    name="chiaki_streamsession",
+    sources=["streamsession.pyx"],
+    libraries=["chiaki", "crypto", "ssl", "gf_complete", "jerasure"]
+)
+
 setup(
     name="chiaki",
     ext_modules=cythonize([discovery_extension])
