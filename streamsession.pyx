@@ -1,20 +1,44 @@
 from libchiaki cimport *
 from libc.string cimport memset, memcpy
 from libc.stdio cimport printf
-import socket
-import struct
 from time import sleep
+
+cpdef enum JoyButtons:
+    CROSS 		= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_CROSS,
+    MOON 		= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_MOON,
+    BOX 		= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_BOX,
+    PYRAMID 	= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_PYRAMID,
+    DPAD_LEFT 	= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_DPAD_LEFT,
+    DPAD_RIGHT = ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_DPAD_RIGHT,
+    DPAD_UP 	= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_DPAD_UP,
+    DPAD_DOWN 	= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_DPAD_DOWN,
+    L1 		= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_L1,
+    R1 		= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_R1,
+    L3			= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_L3,
+    R3			= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_R3,
+    OPTIONS 	= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_OPTIONS,
+    SHARE 		= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_SHARE,
+    TOUCHPAD	= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_TOUCHPAD,
+    PS			= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_PS
+
+cpdef enum JoyAxes:
+    RX,
+    RY,
+    RZ,
+    LX,
+    LY,
+    LZ
 
 cdef class ChiakiStreamSession:
     cdef ChiakiLog log
     cdef ChiakiSession session
     cdef ChiakiTarget target
     cdef bint is_ps5
-    cdef public ChiakiControllerState controller_state
-    cdef public ChiakiControllerState test_state
+    cdef ChiakiControllerState controller_state
+    cdef ChiakiControllerState keyboard_state
     cdef char* regkey
     cdef char* rpkey
-    cdef readonly char* host
+    cdef char* host
     cdef public bint connected
 
     def __cinit__(self, host=None, regkey = None, rpkey = None):
@@ -27,11 +51,11 @@ cdef class ChiakiStreamSession:
         self.target = CHIAKI_TARGET_PS5_1
         self.is_ps5 = True #FIXME:  Support PS4s at some point.  But these controller-only remoteplay hax are primarily for PS5
 
-        chiaki_log_init(&self.log, CHIAKI_LOG_INFO | CHIAKI_LOG_ERROR | CHIAKI_LOG_DEBUG, chiaki_log_cb_print, NULL)
+        chiaki_log_init(&self.log, CHIAKI_LOG_ERROR, chiaki_log_cb_print, NULL)
 
         chiaki_controller_state_set_idle(&self.controller_state)
     
-        chiaki_controller_state_set_idle(&self.test_state)
+        chiaki_controller_state_set_idle(&self.keyboard_state)
 
         cdef ChiakiAudioSink dummy_sink
         dummy_sink.user = &self.log
@@ -75,6 +99,38 @@ cdef class ChiakiStreamSession:
 
     cpdef void GoToBed(self):
         chiaki_session_goto_bed(&self.session)
+
+    def HandleAxisEvent(self, axis, value):
+        if(axis == JoyAxes.RX):
+            self.controller_state.right_x = value
+        elif(axis == JoyAxes.RY):
+            self.controller_state.right_y = value
+        elif(axis == JoyAxes.RZ):
+            self.controller_state.r2_state = value
+        elif(axis == JoyAxes.LX):
+            self.controller_state.left_x = value
+        elif(axis == JoyAxes.LY):
+            self.controller_state.left_y = value
+        elif(axis == JoyAxes.LZ):
+            self.controller_state.l2_state = value
+
+        self.SendFeedbackState()
+
+    def HandleButtonEvent(self, key, pressed):
+        cdef ChiakiControllerButton button = key
+        if(pressed):
+            self.keyboard_state.buttons |= button
+        else:
+            self.keyboard_state.buttons &= ~button
+
+        self.SendFeedbackState()
+
+    cdef void SendFeedbackState(self):
+        cdef ChiakiControllerState state
+        chiaki_controller_state_set_idle(&state)
+        chiaki_controller_state_or(&state, &state, &self.controller_state)
+        chiaki_controller_state_or(&state, &state, &self.keyboard_state)
+        chiaki_session_set_controller_state(&self.session, &state)
 
     @staticmethod
     cdef void event_cb(ChiakiEvent *event, void *selfref) noexcept:
