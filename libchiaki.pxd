@@ -956,15 +956,15 @@ cdef extern from "libchiaki.h":
 
     ctypedef chiaki_session_t ChiakiSession
 
-    ChiakiErrorCode chiaki_session_init(ChiakiSession* session, ChiakiConnectInfo* connect_info, ChiakiLog* log)
+    ChiakiErrorCode chiaki_session_init(ChiakiSession* session, ChiakiConnectInfo* connect_info, ChiakiLog* log) nogil
 
-    void chiaki_session_fini(ChiakiSession* session)
+    void chiaki_session_fini(ChiakiSession* session) nogil
 
-    ChiakiErrorCode chiaki_session_start(ChiakiSession* session)
+    ChiakiErrorCode chiaki_session_start(ChiakiSession* session) nogil
 
-    ChiakiErrorCode chiaki_session_stop(ChiakiSession* session)
+    ChiakiErrorCode chiaki_session_stop(ChiakiSession* session) nogil
 
-    ChiakiErrorCode chiaki_session_join(ChiakiSession* session)
+    ChiakiErrorCode chiaki_session_join(ChiakiSession* session) nogil
 
     ChiakiErrorCode chiaki_session_set_controller_state(ChiakiSession* session, ChiakiControllerState* state)
 
