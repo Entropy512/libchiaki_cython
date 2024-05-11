@@ -22,5 +22,5 @@ discovery_extension = Extension(
 
 setup(
     name="chiaki",
-    ext_modules=cythonize([discovery_extension])
+    ext_modules=cythonize([discovery_extension], gdb_debug=True)
 )
