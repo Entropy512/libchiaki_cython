@@ -427,8 +427,11 @@ cdef extern from "libchiaki.h":
 
     ctypedef chiaki_rpcrypt_t ChiakiRPCrypt
 
-    cdef struct ec_group_st
-    cdef struct ec_key_st
+    cdef struct ec_group_st:
+        pass
+
+    cdef struct ec_key_st:
+        pass
 
     cdef struct chiaki_ecdh_t:
         ec_group_st* group
@@ -678,7 +681,8 @@ cdef extern from "libchiaki.h":
 
     ctypedef chiaki_stream_stats_t ChiakiStreamStats
 
-    cdef struct chiaki_frame_unit_t
+    cdef struct chiaki_frame_unit_t:
+        pass
 
     ctypedef chiaki_frame_unit_t ChiakiFrameUnit
 
