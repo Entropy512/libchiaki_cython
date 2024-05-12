@@ -90,13 +90,13 @@ def handle_event(e):
             case ecodes.ABS_Y:
                 ss.HandleAxisEvent(JoyAxes.LY, e.value)
             case ecodes.ABS_Z:
-                ss.HandleAxisEvent(JoyAxes.LZ, e.value)
+                ss.HandleAxisEvent(JoyAxes.LZ, e.value >> 2)
             case ecodes.ABS_RX:
                 ss.HandleAxisEvent(JoyAxes.RX, e.value)
             case ecodes.ABS_RY:
                 ss.HandleAxisEvent(JoyAxes.RY, e.value)
             case ecodes.ABS_RZ:
-                ss.HandleAxisEvent(JoyAxes.RZ, e.value)
+                ss.HandleAxisEvent(JoyAxes.RZ, e.value >> 2)
             case ecodes.ABS_HAT0X:
                 ss.HandleButtonEvent(JoyButtons.DPAD_LEFT, (e.value == -1), sendImm=False)
                 ss.HandleButtonEvent(JoyButtons.DPAD_RIGHT, (e.value == 1))
