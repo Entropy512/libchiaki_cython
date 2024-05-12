@@ -117,12 +117,12 @@ def main():
 
     ss = ChiakiStreamSession(host=args['host'], regkey=regkey.data(), rpkey=morning.data())
 
-    ss.Start()
-
     xonedev = InputDevice('/dev/input/event20')
     indevices = [xonedev]
 
     fd_to_device = {dev.fd: dev for dev in indevices}
+
+    ss.Start()
 
     while True:
         r, w, e = select.select(fd_to_device, [], [], 0)
