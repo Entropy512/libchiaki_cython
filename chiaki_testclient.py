@@ -5,10 +5,7 @@ from chiaki_streamsession import ChiakiStreamSession, JoyButtons, JoyAxes
 import argparse
 
 from evdev import ecodes, list_devices, AbsInfo, InputDevice
-import atexit
-import sys
-import select
-import termios
+import sys, select, tty, termios
 
 def print_event(e):
     if e.type == ecodes.EV_SYN:
@@ -46,10 +43,10 @@ Bumper L: BTN_TL
 Left Thumb: BTN_THUMBL
 Right Thumb: BTN_THUMBR
 """
-def handle_event(e):
+def handle_event(ss,e):
     if e.type == ecodes.EV_KEY:
         match e.code:
-            case ecodes.KEY_Q:
+            case ecodes.KEY_Q:  # obsolete, leaving it here just in case
                 ss.Stop()
                 exit()
             case k if k in [ecodes.KEY_A, ecodes.KEY_LEFT]:
@@ -104,36 +101,54 @@ def handle_event(e):
                 ss.HandleButtonEvent(JoyButtons.DPAD_UP, (e.value == -1), sendImm=False)
                 ss.HandleButtonEvent(JoyButtons.DPAD_DOWN, (e.value == 1))
 
-ap = argparse.ArgumentParser()
-ap.add_argument('--host', required=True,
-    help='PS5 to connect to')
 
-args = vars(ap.parse_args())
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--host', required=True,
+        help='PS5 to connect to')
 
-chiaki_settings = QSettings('Chiaki', 'Chiaki')
+    args = vars(ap.parse_args())
 
-regkey = chiaki_settings.value('registered_hosts/1/rp_regist_key')
+    chiaki_settings = QSettings('Chiaki', 'Chiaki')
 
-morning = chiaki_settings.value('registered_hosts/1/rp_key')
+    regkey = chiaki_settings.value('registered_hosts/1/rp_regist_key')
 
-ss = ChiakiStreamSession(host=args['host'], regkey=regkey.data(), rpkey=morning.data())
+    morning = chiaki_settings.value('registered_hosts/1/rp_key')
 
-ss.Start()
+    ss = ChiakiStreamSession(host=args['host'], regkey=regkey.data(), rpkey=morning.data())
 
+    ss.Start()
 
-valid_keys = ['a', 'd']
+    xonedev = InputDevice('/dev/input/event20')
+    indevices = [xonedev]
 
-kbdev = InputDevice('/dev/input/event4')
-xonedev = InputDevice('/dev/input/event20')
-indevices = [kbdev, xonedev]
+    fd_to_device = {dev.fd: dev for dev in indevices}
 
-fd_to_device = {dev.fd: dev for dev in indevices}
+    while True:
+        r, w, e = select.select(fd_to_device, [], [], 0)
 
-while True:
-    r, w, e = select.select(fd_to_device, [], [])
+        for fd in r:
+            for event in fd_to_device[fd].read():
+                #print_event(event)
+                handle_event(ss,event)
 
-    for fd in r:
-        for event in fd_to_device[fd].read():
-            #print_event(event)
-            handle_event(event)
+        r, w, e = select.select([sys.stdin], [], [], 0)
 
+        '''
+        Using evdev for this results in the quit function being executed any time we press q - even elsewhere.
+        So read sys.stdin instead.  In the process, we've dropped support for all other keyboard inputs since controller input is fully functional now
+        '''
+        for fd in r:
+            if fd == sys.stdin:
+                inchar = sys.stdin.read(1)
+                if(inchar == 'q'):
+                    ss.Stop()
+                    return
+
+try:
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    tty.setcbreak(sys.stdin)
+    main()
+finally:
+    termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
