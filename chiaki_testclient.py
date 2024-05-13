@@ -15,6 +15,8 @@ from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 from time import time
 import scipy
 
+import pygame
+
 def print_event(e):
     if e.type == ecodes.EV_SYN:
         if e.code == ecodes.SYN_MT_REPORT:
@@ -51,7 +53,7 @@ Bumper L: BTN_TL
 Left Thumb: BTN_THUMBL
 Right Thumb: BTN_THUMBR
 """
-def handle_event(ss,e):
+def handle_evdev_event(ss,e):
     if e.type == ecodes.EV_KEY:
         match e.code:
             case ecodes.KEY_Q:  # obsolete, leaving it here just in case
@@ -109,9 +111,74 @@ def handle_event(ss,e):
                 ss.HandleButtonEvent(JoyButtons.DPAD_UP, (e.value == -1), sendImm=False)
                 ss.HandleButtonEvent(JoyButtons.DPAD_DOWN, (e.value == 1))
 
+def handle_pygame_event(ss,e):
+    global joysticks
+
+    if e.type == pygame.JOYDEVICEADDED:
+        # This event will be generated when the program starts for every
+        # joystick, filling up the list without needing to create them manually.
+        joy = pygame.joystick.Joystick(e.device_index)
+        joysticks[joy.get_instance_id()] = joy
+        print(f"Joystick {joy.get_instance_id()} connencted")
+
+    if e.type == pygame.JOYDEVICEREMOVED:
+        del joysticks[e.instance_id]
+        print(f"Joystick {e.instance_id} disconnected")
+
+    if (e.type == pygame.JOYBUTTONDOWN) or (e.type == pygame.JOYBUTTONUP):
+        value = (e.type == pygame.JOYBUTTONDOWN)
+        match e.button:
+            case 8: #Xbox button
+                ss.HandleButtonEvent(JoyButtons.TOUCHPAD, value)
+            case 6: #Share?  Select? Guide?
+                ss.HandleButtonEvent(JoyButtons.PS, value)
+            case 7: #Hamburger?
+                ss.HandleButtonEvent(JoyButtons.OPTIONS, value)
+            case 9: #Left thumb
+                ss.HandleButtonEvent(JoyButtons.L3, value)
+            case 10: #Right thumb
+                ss.HandleButtonEvent(JoyButtons.R3, value)
+            case 4: #LT
+                ss.HandleButtonEvent(JoyButtons.L1, value)
+            case 5: #RT
+                ss.HandleButtonEvent(JoyButtons.R1, value)
+            case 0: #A
+                ss.HandleButtonEvent(JoyButtons.CROSS, value)
+            case 1: #B
+                ss.HandleButtonEvent(JoyButtons.MOON, value)
+            case 2: #X
+                ss.HandleButtonEvent(JoyButtons.BOX, value)
+            case 3: #Y
+                ss.HandleButtonEvent(JoyButtons.PYRAMID, value)
+
+
+    if e.type == pygame.JOYAXISMOTION:
+        match e.axis:
+            case 0:
+                ss.HandleAxisEvent(JoyAxes.LX, int(e.value*32767))
+            case 1:
+                ss.HandleAxisEvent(JoyAxes.LY, int(e.value*32767))
+            case 2:
+                ss.HandleAxisEvent(JoyAxes.LZ, int(e.value*255))
+            case 3:
+                ss.HandleAxisEvent(JoyAxes.RX, int(e.value*32767))
+            case 4:
+                ss.HandleAxisEvent(JoyAxes.RY, int(e.value*32767))
+            case 5:
+                ss.HandleAxisEvent(JoyAxes.RZ, int(e.value*255))
+
+    if e.type == pygame.JOYHATMOTION:
+        if(e.hat == 0):
+                ss.HandleButtonEvent(JoyButtons.DPAD_LEFT, (e.value[0] == -1), sendImm=False)
+                ss.HandleButtonEvent(JoyButtons.DPAD_RIGHT, (e.value[0] == 1), sendImm=False)
+                ss.HandleButtonEvent(JoyButtons.DPAD_UP, (e.value[1] == 1), sendImm=False)
+                ss.HandleButtonEvent(JoyButtons.DPAD_DOWN, (e.value[1] == -1))
+
 def haptics_callback(data):
     # requires https://github.com/eric-wieser/numpy_ringbuffer/pull/18
     rbuf.extend(data/32767) #normalize to the equivalent of 1V p-p
+    global last_haptic_time
+    last_haptic_time = time()
 
 def main():
     ap = argparse.ArgumentParser()
@@ -130,28 +197,30 @@ def main():
 
     ss.set_haptics_callback(haptics_callback)
 
-    xonedev = InputDevice('/dev/input/event20')
-    indevices = [xonedev]
+    if(0):
+        xonedev = InputDevice('/dev/input/event20')
+        indevices = [xonedev]
 
-    fd_to_device = {dev.fd: dev for dev in indevices}
+        fd_to_device = {dev.fd: dev for dev in indevices}
 
     ss.Start()
 
 
     while True:
-        r, w, e = select.select(fd_to_device, [], [], 0)
+        if(0): #disable evdev for now, keep the code for potential future use after refactoring
+            r, w, e = select.select(fd_to_device, [], [], 0)
 
-        for fd in r:
-            for event in fd_to_device[fd].read():
-                #print_event(event)
-                handle_event(ss,event)
-
-        r, w, e = select.select([sys.stdin], [], [], 0)
+            for fd in r:
+                for event in fd_to_device[fd].read():
+                    #print_event(event)
+                    handle_event(ss, event)
 
         '''
         Using evdev for this results in the quit function being executed any time we press q - even elsewhere.
         So read sys.stdin instead.  In the process, we've dropped support for all other keyboard inputs since controller input is fully functional now
         '''
+        r, w, e = select.select([sys.stdin], [], [], 0)
+
         global plot_pause
         for fd in r:
             if fd == sys.stdin:
@@ -164,11 +233,25 @@ def main():
                 if(inchar == 'r'):
                     plot_pause = False
 
+        '''
+        Handle pygame joystick events
+        '''
+
+        for pgevent in pygame.event.get():
+            handle_pygame_event(ss, pgevent)
+
+        global last_haptic_time
+        if((time() - last_haptic_time) >= 0.04):
+           last_haptic_time = time() - 0.02
+           rbuf.extend(np.zeros(60))
+
         global last_power_time
         if((time() - last_power_time) >= buffer_time/2):
             last_power_time = time()
             lpow, hpow = get_sigpower(np.array(rbuf))
-            print("haptics low: {}, haptics high: {}".format(lpow, hpow))
+            joy = joysticks[list(joysticks.keys())[0]] #FIXME:  Handle more than one controller properly
+            joy.rumble(lpow, hpow, int(buffer_time*1000))
+            #print("haptics low: {}, haptics high: {}".format(lpow, hpow))
 
         global last_plot_time
         if(0):
@@ -227,6 +310,11 @@ try:
         last_plot_time = time()
 
     last_power_time = time()
+    last_haptic_time = time()
+
+    pygame.init()
+    joysticks = {}
     main()
 finally:
     termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    pygame.quit()
