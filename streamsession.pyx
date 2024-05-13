@@ -1,7 +1,8 @@
 from libchiaki cimport *
-#from libc.string cimport memset, memcpy
 from libc.stdio cimport printf
 from libc.stdint cimport uint8_t
+
+import numpy as np
 
 cpdef enum JoyButtons:
     CROSS 		= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_CROSS,
@@ -40,12 +41,15 @@ cdef class ChiakiStreamSession:
     cdef char* rpkey
     cdef char* host
     cdef public bint connected
+    cdef void* python_haptics_callback
 
     def __cinit__(self, host=None, regkey = None, rpkey = None):
         self.regkey = <char*> regkey
         self.rpkey = <char*> rpkey
         temphost = host.encode('UTF-8')
         self.host = <char *> temphost
+
+        self.python_haptics_callback = NULL
 
         self.connected = False
         self.target = CHIAKI_TARGET_PS5_1
@@ -132,10 +136,25 @@ cdef class ChiakiStreamSession:
         chiaki_controller_state_or(&state, &state, &self.keyboard_state)
         chiaki_session_set_controller_state(&self.session, &state)
 
+    def set_haptics_callback(self, func):
+        self.python_haptics_callback = <void*>func
+
+    '''
+    It does not appear that we can pass a native Python class method to C.  So we pass a staticmethod.  Fortunately Chiaki's callbacks support passing user data,
+    so we pass a pointer to "self" as user data to the callback, and dereference it inside of the function.
+
+    Also used for our event callback
+
+    haptics_frame_cb calls Python code so "with gil" is absolutely mandatory.  Otherwise any attempt to call Python code segfaults.
+    '''
     @staticmethod
-    cdef void haptics_frame_cb(uint8_t *buf, size_t buf_size, void *selfref) noexcept:
+    cdef void haptics_frame_cb(uint8_t *buf, size_t buf_size, void *selfref) noexcept with gil:
         self = <ChiakiStreamSession> selfref
-        printf("Haptics callback received, length %zu\n", buf_size)
+        #TODO:  Figure out what to do if we ever get an odd buf_size - this should never happen though!  Not sure how frombuffer will handle things for an odd size
+        myarr = np.frombuffer(buf[:buf_size], dtype='int16', count=-1)
+        #https://github.com/cython/cython/tree/master/Demos/callback
+        if(self.python_haptics_callback != NULL):
+            (<object>self.python_haptics_callback)(myarr)
 
     @staticmethod
     cdef void event_cb(ChiakiEvent *event, void *selfref) noexcept:
