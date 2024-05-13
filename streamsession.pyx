@@ -150,8 +150,12 @@ cdef class ChiakiStreamSession:
     @staticmethod
     cdef void haptics_frame_cb(uint8_t *buf, size_t buf_size, void *selfref) noexcept with gil:
         self = <ChiakiStreamSession> selfref
-        #TODO:  Figure out what to do if we ever get an odd buf_size - this should never happen though!  Not sure how frombuffer will handle things for an odd size
-        myarr = np.frombuffer(buf[:buf_size], dtype='int16', count=-1)
+        '''
+        TODO:  Figure out what to do if we ever get an odd buf_size - this should never happen though!  Not sure how frombuffer will handle things for an odd size
+        The Cython documentation is really unclear as to how to derefence a buffer pointer to something that Python functions will accept.  Most documentation talks about
+        memoryviews of Python objects, not the other way around.  It turns out that you need to use Python's slicing syntax - see buf[:buf_size]
+        '''
+        myarr = np.frombuffer(buf[:buf_size], dtype='int16', count=-1).newbyteorder('<')
         #https://github.com/cython/cython/tree/master/Demos/callback
         if(self.python_haptics_callback != NULL):
             (<object>self.python_haptics_callback)(myarr)
