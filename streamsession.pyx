@@ -1,7 +1,7 @@
 from libchiaki cimport *
-from libc.string cimport memset, memcpy
+#from libc.string cimport memset, memcpy
 from libc.stdio cimport printf
-from time import sleep
+from libc.stdint cimport uint8_t
 
 cpdef enum JoyButtons:
     CROSS 		= ChiakiControllerButton.CHIAKI_CONTROLLER_BUTTON_CROSS,
@@ -63,6 +63,11 @@ cdef class ChiakiStreamSession:
         dummy_sink.header_cb = self.dummy_header_cb
         chiaki_session_set_audio_sink(&self.session, &dummy_sink)
 
+        cdef ChiakiAudioSink haptics_sink
+        haptics_sink.user = <void*> self
+        haptics_sink.frame_cb = self.haptics_frame_cb
+        chiaki_session_set_haptics_sink(&self.session, &haptics_sink)
+
         cdef ChiakiConnectVideoProfile vid_profile
         chiaki_connect_video_profile_preset(&vid_profile, CHIAKI_VIDEO_RESOLUTION_PRESET_360p, CHIAKI_VIDEO_FPS_PRESET_30)
 
@@ -70,11 +75,11 @@ cdef class ChiakiStreamSession:
         connect_info.ps5 = chiaki_target_is_ps5(self.target)
         connect_info.host = self.host
         connect_info.enable_keyboard = False #Pretty sure this means disabling sending of keyboard events to the PS5, not "do not handle local keyboard"
-        connect_info.enable_dualsense = False #No intention right now of using a dualsense with haptics
         connect_info.video_profile = vid_profile
         connect_info.video_profile_auto_downgrade = True
         connect_info.morning = self.rpkey
         connect_info.regist_key = self.regkey
+        connect_info.enable_dualsense = True
 
         err = chiaki_session_init(&self.session, &connect_info, &self.log)
         if(err != CHIAKI_ERR_SUCCESS):
@@ -132,6 +137,11 @@ cdef class ChiakiStreamSession:
         chiaki_controller_state_or(&state, &state, &self.controller_state)
         chiaki_controller_state_or(&state, &state, &self.keyboard_state)
         chiaki_session_set_controller_state(&self.session, &state)
+
+    @staticmethod
+    cdef void haptics_frame_cb(uint8_t *buf, size_t buf_size, void *selfref) noexcept:
+        self = <ChiakiStreamSession> selfref
+        printf("Haptics callback received, length %zu\n", buf_size)
 
     @staticmethod
     cdef void event_cb(ChiakiEvent *event, void *selfref) noexcept:
