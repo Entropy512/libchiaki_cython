@@ -57,17 +57,6 @@ cdef class ChiakiStreamSession:
     
         chiaki_controller_state_set_idle(&self.keyboard_state)
 
-        cdef ChiakiAudioSink dummy_sink
-        dummy_sink.user = &self.log
-        dummy_sink.frame_cb = self.dummy_frame_cb
-        dummy_sink.header_cb = self.dummy_header_cb
-        chiaki_session_set_audio_sink(&self.session, &dummy_sink)
-
-        cdef ChiakiAudioSink haptics_sink
-        haptics_sink.user = <void*> self
-        haptics_sink.frame_cb = self.haptics_frame_cb
-        chiaki_session_set_haptics_sink(&self.session, &haptics_sink)
-
         cdef ChiakiConnectVideoProfile vid_profile
         chiaki_connect_video_profile_preset(&vid_profile, CHIAKI_VIDEO_RESOLUTION_PRESET_360p, CHIAKI_VIDEO_FPS_PRESET_30)
 
@@ -84,6 +73,11 @@ cdef class ChiakiStreamSession:
         err = chiaki_session_init(&self.session, &connect_info, &self.log)
         if(err != CHIAKI_ERR_SUCCESS):
             raise Exception("Chiaki Session Init failed: " + chiaki_error_string(err))
+
+        cdef ChiakiAudioSink haptics_sink
+        haptics_sink.user = <void*> self
+        haptics_sink.frame_cb = self.haptics_frame_cb
+        chiaki_session_set_haptics_sink(&self.session, &haptics_sink)
 
         chiaki_session_set_event_cb(&self.session, <ChiakiEventCallback> self.event_cb, <void*> self)
 
@@ -162,12 +156,4 @@ cdef class ChiakiStreamSession:
         else:
             printf("Unkown event received")
 
-
-    @staticmethod
-    cdef void dummy_frame_cb(uint8_t* buf, size_t buf_size, void* user) noexcept:
-        printf("dummy_frame_cb\n")
-
-    @staticmethod
-    cdef void dummy_header_cb(ChiakiAudioHeader* header, void* user) noexcept:
-        printf("dummy_header_cb\n")
 
