@@ -159,13 +159,13 @@ def handle_pygame_event(ss,e):
             case 1:
                 ss.HandleAxisEvent(JoyAxes.LY, int(e.value*32767))
             case 2:
-                ss.HandleAxisEvent(JoyAxes.LZ, int(e.value*255))
+                ss.HandleAxisEvent(JoyAxes.LZ, int(max(0,(e.value+1)*255/2)))
             case 3:
                 ss.HandleAxisEvent(JoyAxes.RX, int(e.value*32767))
             case 4:
                 ss.HandleAxisEvent(JoyAxes.RY, int(e.value*32767))
             case 5:
-                ss.HandleAxisEvent(JoyAxes.RZ, int(e.value*255))
+                ss.HandleAxisEvent(JoyAxes.RZ, int(max(0,(e.value+1)*255/2)))
 
     if e.type == pygame.JOYHATMOTION:
         if(e.hat == 0):
