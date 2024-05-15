@@ -274,7 +274,7 @@ def main():
            rbuf.extend(np.zeros(60))
 
         global last_power_time
-        if((time() - last_power_time) >= buffer_time/2):
+        if((time() - last_power_time) >= buffer_time):
             last_power_time = time()
             lpow, hpow = get_sigpower(np.array(rbuf))
             joy = joysticks[list(joysticks.keys())[0]] #FIXME:  Handle more than one controller properly
@@ -296,14 +296,14 @@ def main():
 def get_sigpower(data):
     f, Pxx = scipy.signal.periodogram(np.array(data), fs=fs, scaling='density')
     nyq = fs/2
-    ind_lowcut = np.argmax(f > 25) - 1
-    ind_highcut = np.argmax(f > 60) - 1
+    ind_lowcut = np.argmax(f > 85) - 1
+    ind_highcut = np.argmax(f >= 350) - 1 #Do we just want to take all high frequency content???
     lowpow = np.sqrt(scipy.integrate.trapz(Pxx[:ind_lowcut], f[:ind_lowcut]))
     highpow = np.sqrt(scipy.integrate.trapz(Pxx[ind_lowcut:ind_highcut], f[ind_lowcut:ind_highcut]))
     return lowpow, highpow
 
 try:
-    buffer_time = 0.2
+    buffer_time = 0.06 #3 haptics packets
     fs = 3000
     nyq = fs/2
     plot_pause = False
