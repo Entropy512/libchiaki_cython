@@ -111,6 +111,34 @@ def handle_evdev_event(ss,e):
                 ss.HandleButtonEvent(JoyButtons.DPAD_UP, (e.value == -1), sendImm=False)
                 ss.HandleButtonEvent(JoyButtons.DPAD_DOWN, (e.value == 1))
 
+'''
+Xbox Elite mappings, pygame edition:
+Axes:
+0 : LX
+1 : LY
+2 : LZ (trigger)
+3 : RX
+4 : RY
+5 : RZ (trigger)
+
+Buttons:
+0: A
+1: B
+2: X
+3: Y
+4: LT
+5: RT
+6: Windows???
+7: Hamburger?
+8: Xbox button
+9: Left Thumbstick click
+10: Right Thumbstick click
+11: Upper right paddle
+12: Lower right paddle
+13: Upper Left paddle
+14: Lower left paddle
+Why does xpad give the right paddles lower values than left???
+'''
 def handle_pygame_event(ss,e):
     global joysticks
 
@@ -134,13 +162,13 @@ def handle_pygame_event(ss,e):
                 ss.HandleButtonEvent(JoyButtons.PS, value)
             case 7: #Hamburger?
                 ss.HandleButtonEvent(JoyButtons.OPTIONS, value)
-            case 9: #Left thumb
+            case k if k in [9, 14]: #Left thumb or lower left paddle
                 ss.HandleButtonEvent(JoyButtons.L3, value)
-            case 10: #Right thumb
+            case k if k in [10, 12]: #Right thumb or lower right paddle
                 ss.HandleButtonEvent(JoyButtons.R3, value)
-            case 4: #LT
+            case k if k in [4, 13]: #LT or upper left paddle
                 ss.HandleButtonEvent(JoyButtons.L1, value)
-            case 5: #RT
+            case k if k in [5, 11]: #RT or upper right paddle
                 ss.HandleButtonEvent(JoyButtons.R1, value)
             case 0: #A
                 ss.HandleButtonEvent(JoyButtons.CROSS, value)
