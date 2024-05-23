@@ -8,13 +8,13 @@ discovery_extension = Extension(
     libraries=["chiaki", "crypto", "ssl", "gf_complete", "jerasure"]
 )
 
-discovery_extension = Extension(
+wakeup_extension = Extension(
     name="chiaki_wakeup",
     sources=["wakeup.pyx"],
     libraries=["chiaki", "crypto", "ssl", "gf_complete", "jerasure"]
 )
 
-discovery_extension = Extension(
+streamsession_extension = Extension(
     name="chiaki_streamsession",
     sources=["streamsession.pyx"],
     libraries=["chiaki", "crypto", "ssl", "gf_complete", "jerasure"]
@@ -22,5 +22,5 @@ discovery_extension = Extension(
 
 setup(
     name="chiaki",
-    ext_modules=cythonize([discovery_extension], gdb_debug=True)
+    ext_modules=cythonize([discovery_extension, wakeup_extension, streamsession_extension], gdb_debug=True)
 )
