@@ -17,7 +17,7 @@ cdef extern from "netdb.h":
                     const addrinfo *hints,
                     addrinfo **res)
 
-cdef extern from "libchiaki.h":
+cdef extern from "chiaki/common.h":
 
     ctypedef uint32_t chiaki_unaligned_uint32_t
 
@@ -77,6 +77,8 @@ cdef extern from "libchiaki.h":
 
     const char* chiaki_codec_name(ChiakiCodec codec)
 
+cdef extern from "chiaki/log.h":
+
     ctypedef enum ChiakiLogLevel:
         CHIAKI_LOG_DEBUG
         CHIAKI_LOG_VERBOSE
@@ -121,6 +123,8 @@ cdef extern from "libchiaki.h":
     ChiakiLog* chiaki_log_sniffer_get_log(ChiakiLogSniffer* sniffer)
 
     const char* chiaki_log_sniffer_get_buffer(ChiakiLogSniffer* sniffer)
+
+cdef extern from "chiaki/controller.h":
 
     cpdef enum chiaki_controller_button_t:
         CHIAKI_CONTROLLER_BUTTON_CROSS
@@ -190,6 +194,8 @@ cdef extern from "libchiaki.h":
 
     void chiaki_controller_state_or(ChiakiControllerState* out, ChiakiControllerState* a, ChiakiControllerState* b)
 
+cdef extern from "chiaki/orientation.h":
+
     cdef struct chiaki_orientation_t:
         float x
         float y
@@ -221,6 +227,8 @@ cdef extern from "libchiaki.h":
 
     void chiaki_orientation_tracker_apply_to_controller_state(ChiakiOrientationTracker* tracker, ChiakiControllerState* state)
 
+cdef extern from "chiaki/seqnum.h":
+
     ctypedef uint16_t ChiakiSeqNum16
 
     bint  chiaki_seq_num_16_lt(ChiakiSeqNum16 a, ChiakiSeqNum16 b)
@@ -232,6 +240,8 @@ cdef extern from "libchiaki.h":
     bint  chiaki_seq_num_32_lt(ChiakiSeqNum32 a, ChiakiSeqNum32 b)
 
     bint  chiaki_seq_num_32_gt(ChiakiSeqNum32 a, ChiakiSeqNum32 b)
+
+cdef extern from "chiaki/thread.h":
 
     # https://groups.google.com/g/cython-users/c/kqUBhXwqHSY
     cdef struct pthread_t:
@@ -265,12 +275,18 @@ cdef extern from "libchiaki.h":
 
     ctypedef chiaki_bool_pred_cond_t ChiakiBoolPredCond
 
+cdef extern from "chiaki/stoppipe.h":
+
     cdef struct chiaki_stop_pipe_t:
         int fds[2]
 
     ctypedef chiaki_stop_pipe_t ChiakiStopPipe
 
+cdef extern from "chiaki/sock.h":
+
     ctypedef int chiaki_socket_t
+
+cdef extern from "chiaki/discovery.h":
 
     char* CHIAKI_DISCOVERY_PROTOCOL_VERSION_PS4
     char* CHIAKI_DISCOVERY_PROTOCOL_VERSION_PS5
@@ -344,6 +360,8 @@ cdef extern from "libchiaki.h":
 
     ChiakiErrorCode chiaki_discovery_wakeup(ChiakiLog *log, ChiakiDiscovery *discovery, const char *host, uint64_t user_credential, bint ps5);
 
+cdef extern from "chiaki/discoveryservice.h":
+
     ctypedef void (*ChiakiDiscoveryServiceCb)(ChiakiDiscoveryHost* hosts, size_t hosts_count, void* user)
 
     cdef struct chiaki_discovery_service_options_t:
@@ -380,6 +398,8 @@ cdef extern from "libchiaki.h":
 
     void chiaki_discovery_service_fini(ChiakiDiscoveryService* service)
 
+cdef extern from "chiaki/audio.h":
+
     cdef struct chiaki_audio_header_t:
         uint8_t channels
         uint8_t bits
@@ -388,6 +408,8 @@ cdef extern from "libchiaki.h":
         uint32_t unknown
 
     ctypedef chiaki_audio_header_t ChiakiAudioHeader
+
+cdef extern from "chiaki/packetstats.h":
 
     cdef struct chiaki_packet_stats_t:
         ChiakiMutex mutex
@@ -398,6 +420,8 @@ cdef extern from "libchiaki.h":
         uint64_t seq_received
 
     ctypedef chiaki_packet_stats_t ChiakiPacketStats
+
+cdef extern from "chiaki/audioreceiver.h":
 
     ctypedef void (*ChiakiAudioSinkHeader)(ChiakiAudioHeader* header, void* user)
 
@@ -420,12 +444,16 @@ cdef extern from "libchiaki.h":
 
     ctypedef chiaki_audio_receiver_t ChiakiAudioReceiver
 
+cdef extern from "chiaki/rpcrypt.h":
+
     cdef struct chiaki_rpcrypt_t:
         ChiakiTarget target
         uint8_t bright[0x10]
         uint8_t ambassador[0x10]
 
     ctypedef chiaki_rpcrypt_t ChiakiRPCrypt
+
+cdef extern from "chiaki/ecdh.h":
 
     cdef struct ec_group_st:
         pass
@@ -438,6 +466,8 @@ cdef extern from "libchiaki.h":
         ec_key_st* key_local
 
     ctypedef chiaki_ecdh_t ChiakiECDH
+
+cdef extern from "chiaki/ctrl.h":
 
     ctypedef chiaki_ctrl_message_queue_t ChiakiCtrlMessageQueue
 
@@ -467,6 +497,8 @@ cdef extern from "libchiaki.h":
 
     ctypedef chiaki_ctrl_t ChiakiCtrl
 
+cdef extern from "chiaki/gkcrypt.h":
+
     cdef struct chiaki_key_state_t:
         uint64_t prev
 
@@ -492,6 +524,8 @@ cdef extern from "libchiaki.h":
         ChiakiLog* log
 
     ctypedef chiaki_gkcrypt_t ChiakiGKCrypt
+
+cdef extern from "chiaki/reorderqueue.h":
 
     cpdef enum chiaki_reorder_queue_drop_strategy_t:
         CHIAKI_REORDER_QUEUE_DROP_STRATEGY_BEGIN
@@ -530,6 +564,8 @@ cdef extern from "libchiaki.h":
 
     ctypedef chiaki_reorder_queue_t ChiakiReorderQueue
 
+cdef extern from "chiaki/takionsendbuffer.h":
+
     cdef struct chiaki_takion_send_buffer_packet_t:
         ChiakiSeqNum32 seq_num
         uint64_t tries
@@ -553,6 +589,8 @@ cdef extern from "libchiaki.h":
         ChiakiThread thread
 
     ctypedef chiaki_takion_send_buffer_t ChiakiTakionSendBuffer
+
+cdef extern from "chiaki/takion.h":
 
     cpdef enum chiaki_takion_message_data_type_t:
         CHIAKI_TAKION_MESSAGE_DATA_TYPE_PROTOBUF
@@ -667,6 +705,8 @@ cdef extern from "libchiaki.h":
         ChiakiKeyState key_state
         bint  enable_dualsense
 
+cdef extern from "chiaki/videoprofile.h":
+
     cdef struct chiaki_video_profile_t:
         unsigned int width
         unsigned int height
@@ -674,6 +714,8 @@ cdef extern from "libchiaki.h":
         uint8_t* header
 
     ctypedef chiaki_video_profile_t ChiakiVideoProfile
+
+cdef extern from "chiaki/frameprocessor.h":
 
     cdef struct chiaki_stream_stats_t:
         uint64_t frames
@@ -703,6 +745,8 @@ cdef extern from "libchiaki.h":
 
     ctypedef chiaki_frame_processor_t ChiakiFrameProcessor
 
+cdef extern from "chiaki/videoreceiver.h":
+
     cdef struct chiaki_video_receiver_t:
         chiaki_session_t* session
         ChiakiLog* log
@@ -716,6 +760,8 @@ cdef extern from "libchiaki.h":
         ChiakiPacketStats* packet_stats
 
     ctypedef chiaki_video_receiver_t ChiakiVideoReceiver
+
+cdef extern from "chiaki/feedback.h":
 
     cdef struct chiaki_feedback_state_t:
         float gyro_x
@@ -749,6 +795,8 @@ cdef extern from "libchiaki.h":
 
     ctypedef chiaki_feedback_history_buffer_t ChiakiFeedbackHistoryBuffer
 
+cdef extern from "chiaki/feedbacksender.h":
+
     cdef struct chiaki_feedback_sender_t:
         ChiakiLog* log
         ChiakiTakion* takion
@@ -764,6 +812,8 @@ cdef extern from "libchiaki.h":
         ChiakiCond state_cond
 
     ctypedef chiaki_feedback_sender_t ChiakiFeedbackSender
+
+cdef extern from "chiaki/streamconnection.h":
 
     cdef struct chiaki_stream_connection_t:
         chiaki_session_t* session
@@ -789,6 +839,8 @@ cdef extern from "libchiaki.h":
         char* remote_disconnect_reason
 
     ctypedef chiaki_stream_connection_t ChiakiStreamConnection
+
+cdef extern from "chiaki/session.h":
 
     const char* chiaki_rp_application_reason_string(uint32_t reason)
 
@@ -985,6 +1037,8 @@ cdef extern from "libchiaki.h":
     void chiaki_session_set_audio_sink(ChiakiSession* session, ChiakiAudioSink* sink)
 
     void chiaki_session_set_haptics_sink(ChiakiSession* session, ChiakiAudioSink* sink)
+
+cdef extern from "chiaki/regist.h":
 
     cdef struct chiaki_regist_info_t:
         ChiakiTarget target
