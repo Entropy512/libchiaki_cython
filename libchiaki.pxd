@@ -45,6 +45,7 @@ cdef extern from "chiaki/common.h":
         CHIAKI_ERR_UNINITIALIZED
         CHIAKI_ERR_FEC_FAILED
         CHIAKI_ERR_VERSION_MISMATCH
+        CHIAKI_ERR_HTTP_NONOK
 
     const char* chiaki_error_string(ChiakiErrorCode code)
 
@@ -368,8 +369,10 @@ cdef extern from "chiaki/discoveryservice.h":
         size_t hosts_max
         uint64_t host_drop_pings
         uint64_t ping_ms
+        uint64_t ping_initial_ms
         sockaddr* send_addr
         size_t send_addr_size
+        char* send_host
         ChiakiDiscoveryServiceCb cb
         void* cb_user
 
@@ -448,8 +451,8 @@ cdef extern from "chiaki/rpcrypt.h":
 
     cdef struct chiaki_rpcrypt_t:
         ChiakiTarget target
-        uint8_t bright[0x10]
-        uint8_t ambassador[0x10]
+        uint8_t[0x10] bright
+        uint8_t[0x10] ambassador
 
     ctypedef chiaki_rpcrypt_t ChiakiRPCrypt
 
@@ -469,6 +472,14 @@ cdef extern from "chiaki/ecdh.h":
 
 cdef extern from "chiaki/ctrl.h":
 
+    ctypedef void (*ChiakiCantDisplayCb)(void *user, bint cant_display)
+
+    cdef struct chiaki_ctrl_display_sink_t:
+        void *user
+        ChiakiCantDisplayCb cantdisplay_cb
+
+    ctypedef chiaki_ctrl_display_sink_t ChiakiCtrlDisplaySink
+
     ctypedef chiaki_ctrl_message_queue_t ChiakiCtrlMessageQueue
 
     cdef struct chiaki_ctrl_message_queue_t:
@@ -487,9 +498,12 @@ cdef extern from "chiaki/ctrl.h":
         ChiakiCtrlMessageQueue* msg_queue
         ChiakiStopPipe notif_pipe
         ChiakiMutex notif_mutex
-        bint  login_pin_requested
+        bint login_pin_requested
+        bint cant_displaya
+        bint cant_displayb
         chiaki_socket_t sock
-        uint8_t recv_buf[512]
+        uint8_t[512] recv_buf
+        uint8_t[520] rudp_recv_buf
         size_t recv_buf_size
         uint64_t crypt_counter_local
         uint64_t crypt_counter_remote
@@ -669,6 +683,7 @@ cdef extern from "chiaki/takion.h":
         bint  enable_crypt
         bint  enable_dualsense
         uint8_t protocol_version
+        bint close_socket
 
     ctypedef chiaki_takion_connect_info_t ChiakiTakionConnectInfo
 
@@ -698,6 +713,8 @@ cdef extern from "chiaki/takion.h":
         ChiakiStopPipe stop_pipe
         uint32_t tag_local
         uint32_t tag_remote
+        bint close_socket
+
         ChiakiSeqNum32 seq_num_local
         ChiakiMutex seq_num_local_mutex
         uint32_t a_rwnd
@@ -705,7 +722,7 @@ cdef extern from "chiaki/takion.h":
         ChiakiKeyState key_state
         bint  enable_dualsense
 
-cdef extern from "chiaki/videoprofile.h":
+cdef extern from "chiaki/video.h":
 
     cdef struct chiaki_video_profile_t:
         unsigned int width
@@ -745,6 +762,14 @@ cdef extern from "chiaki/frameprocessor.h":
 
     ctypedef chiaki_frame_processor_t ChiakiFrameProcessor
 
+cdef extern from "chiaki/bitstream.h":
+    cdef struct chiaki_bitstream_t:
+        ChiakiLog *log;
+        ChiakiCodec codec;
+        uint32_t placeholder_union #We'll never access this directly from cython so just put in a placeholder for these unions
+
+    ctypedef chiaki_bitstream_t ChiakiBitstream
+
 cdef extern from "chiaki/videoreceiver.h":
 
     cdef struct chiaki_video_receiver_t:
@@ -758,6 +783,9 @@ cdef extern from "chiaki/videoreceiver.h":
         int32_t frame_index_prev_complete
         ChiakiFrameProcessor frame_processor
         ChiakiPacketStats* packet_stats
+        int32_t frames_lost
+        int32_t[16] reference_frames
+        ChiakiBitstream bitstream
 
     ctypedef chiaki_video_receiver_t ChiakiVideoReceiver
 
@@ -813,6 +841,16 @@ cdef extern from "chiaki/feedbacksender.h":
 
     ctypedef chiaki_feedback_sender_t ChiakiFeedbackSender
 
+cdef extern from "chiaki/congestioncontrol.h":
+    cdef struct chiaki_congestion_control_t:
+        ChiakiTakion *takion
+        ChiakiPacketStats *stats
+        ChiakiThread thread
+        ChiakiBoolPredCond stop_cond
+        double packet_loss
+
+    ctypedef chiaki_congestion_control_t ChiakiCongestionControl
+
 cdef extern from "chiaki/streamconnection.h":
 
     cdef struct chiaki_stream_connection_t:
@@ -827,6 +865,7 @@ cdef extern from "chiaki/streamconnection.h":
         ChiakiVideoReceiver* video_receiver
         ChiakiAudioReceiver* haptics_receiver
         ChiakiFeedbackSender feedback_sender
+        ChiakiCongestionControl congestion_control
         bint  feedback_sender_active
         ChiakiMutex feedback_sender_mutex
         ChiakiCond state_cond
@@ -837,8 +876,188 @@ cdef extern from "chiaki/streamconnection.h":
         bint  should_stop
         bint  remote_disconnected
         char* remote_disconnect_reason
+        double measured_bitrate
 
     ctypedef chiaki_stream_connection_t ChiakiStreamConnection
+
+cdef extern from "miniupnpc/miniupnpc.h":
+    cdef struct UPNPUrls:
+        char *controlURL
+        char *ipcondescURL
+        char *controlURL_CIF
+        char *controlURL_6FC
+        char *rootdescURL
+
+    cdef struct IGDdatas_service:
+        char[128] controlurl #FIXME:  How to pull in MINIUPNPC_URL_MAXSIZE?
+        char[128] eventsuburl
+        char[128] scpdurl
+        char[128] servicetype
+
+    cdef struct IGDdatas:
+        char[128] cureltname
+        char[128] urlbase
+        char[128] presentationurl
+        int level
+        IGDdatas_service CIF
+        IGDdatas_service first
+        IGDdatas_service second
+        IGDdatas_service IPv6FC
+        IGDdatas_service tmp
+
+cdef extern from "chiaki/remote/holepunch.h":
+
+    cdef struct holepunch_regist_info_t:
+        uint8_t[16] data1
+        uint8_t[16] data2
+        uint8_t[16] custom_data1;
+        char[46] regist_local_ip #INET6_ADDRSTRLEN is normally 46, how to handle this on systems that define it differently?
+
+    ctypedef holepunch_regist_info_t ChiakiHolepunchRegistInfo
+
+    cdef struct upnp_gateway_info_t:
+        char[46] lan_ip #Again, figure out how to pull in the system define for INET6_ADDRSTRLEN here
+        UPNPUrls *urls
+        IGDdatas *data
+
+    ctypedef upnp_gateway_info_t UPNPGatewayInfo
+
+    cdef enum chiaki_holepunch_console_type_t:
+        CHIAKI_HOLEPUNCH_CONSOLE_TYPE_PS4 = 0,
+        CHIAKI_HOLEPUNCH_CONSOLE_TYPE_PS5 = 1
+
+    ctypedef chiaki_holepunch_console_type_t ChiakiHolepunchConsoleType
+
+    ctypedef void CURLSH #Opaque pointer when you're not building libcurl
+
+    cdef enum session_state_t:
+        SESSION_STATE_INIT = 0,
+        SESSION_STATE_WS_OPEN = 1 << 0,
+        SESSION_STATE_CREATED = 1 << 1,
+        SESSION_STATE_STARTED = 1 << 2,
+        SESSION_STATE_CLIENT_JOINED = 1 << 3,
+        SESSION_STATE_DATA_SENT = 1 << 4,
+        SESSION_STATE_CONSOLE_JOINED = 1 << 5,
+        SESSION_STATE_CUSTOMDATA1_RECEIVED = 1 << 6,
+        SESSION_STATE_CTRL_OFFER_RECEIVED = 1 << 7,
+        SESSION_STATE_CTRL_OFFER_SENT = 1 << 8,
+        SESSION_STATE_CTRL_CONSOLE_ACCEPTED = 1 << 9,
+        SESSION_STATE_CTRL_CLIENT_ACCEPTED = 1 << 10,
+        SESSION_STATE_CTRL_ESTABLISHED = 1 << 11,
+        SESSION_STATE_DATA_OFFER_RECEIVED = 1 << 12,
+        SESSION_STATE_DATA_OFFER_SENT = 1 << 13,
+        SESSION_STATE_DATA_CONSOLE_ACCEPTED = 1 << 14,
+        SESSION_STATE_DATA_CLIENT_ACCEPTED = 1 << 15,
+        SESSION_STATE_DATA_ESTABLISHED = 1 << 16,
+        SESSION_STATE_DELETED = 1 << 17
+
+    ctypedef session_state_t SessionState #TODO: Can we do opaque enums in cython?
+
+    #pulled from stun.h
+    cdef struct stun_server_t:
+        char* host
+        uint16_t port
+    
+    ctypedef stun_server_t StunServer
+
+    cdef struct session_t:
+        #TODO: Clean this up, how much of this stuff do we really need? (from original chiaki4deck, warning that this will probably change a lot...)
+        char* oauth_header
+        uint8_t[32] console_uid
+        ChiakiHolepunchConsoleType console_type
+
+        chiaki_socket_t sock
+
+        uint64_t account_id
+        char[37] session_id #FIXME:  Pull UUIDV4_STR_LEN from the headers
+        char[37] pushctx_id
+
+        uint16_t sid_local
+        uint16_t sid_console;
+        uint8_t[20] hashed_id_local
+        uint8_t[20] hashed_id_console
+        size_t local_req_id
+        uint8_t[6] local_mac_addr
+        uint16_t local_port_ctrl
+        uint16_t local_port_data
+        int32_t stun_allocation_increment
+        StunServer[10] stun_server_list
+        size_t num_stun_servers
+        UPNPGatewayInfo gw
+
+        uint8_t[16] data1
+        uint8_t[16] data2
+        uint8_t[16] custom_data1
+        char[46] ps_ip #INET6_ADDRSTRLEN again
+        uint16_t ctrl_port
+        char[46] client_local_ip
+
+        CURLSH* curl_share
+
+        char* ws_fqdn
+        ChiakiThread ws_thread
+        void* ws_notification_queue #Opaque pointer from our perspective, normally is notification_queue_t
+        bint ws_thread_should_stop
+        bint ws_open
+
+        bint main_should_stop
+
+        ChiakiStopPipe notif_pipe
+        ChiakiStopPipe select_pipe
+
+        ChiakiMutex notif_mutex
+        ChiakiCond notif_cond
+
+        SessionState state
+        ChiakiMutex state_mutex
+        ChiakiCond state_cond
+
+        chiaki_socket_t ipv4_sock
+        chiaki_socket_t ipv6_sock
+
+        chiaki_socket_t ctrl_sock
+        chiaki_socket_t data_sock
+
+        ChiakiLog *log
+
+cdef extern from "chiaki/remote/rudpsendbuffer.h":
+
+    cdef struct chiaki_rudp_send_buffer_packet_t:
+        ChiakiSeqNum16 seq_num;
+        uint64_t tries;
+        uint64_t last_send_ms
+        uint8_t* buf;
+        size_t buf_size;
+    
+    ctypedef chiaki_rudp_send_buffer_packet_t ChiakiRudpSendBufferPacket
+
+    ctypedef rudp_t* ChiakiRudp #gotta reorder this to keep cython happy.  VSCode highlights this as invalid but cython is OK.
+
+    cdef struct chiaki_rudp_send_buffer_t:
+        ChiakiLog *log
+        ChiakiRudp rudp
+
+        ChiakiRudpSendBufferPacket *packets
+        size_t packets_size
+        size_t packets_count
+
+        ChiakiMutex mutex
+        ChiakiCond cond
+        bint should_stop
+        ChiakiThread thread
+
+    ctypedef chiaki_rudp_send_buffer_t ChiakiRudpSendBuffer
+
+cdef extern from "chiaki/remote/rudp.h":
+
+    cdef struct rudp_t:
+        uint16_t counter
+        uint32_t header
+        ChiakiMutex counter_mutex
+        ChiakiStopPipe stop_pipe
+        chiaki_socket_t sock
+        ChiakiLog* log
+        ChiakiRudpSendBuffer send_buffer
 
 cdef extern from "chiaki/session.h":
 
@@ -869,15 +1088,20 @@ cdef extern from "chiaki/session.h":
 
     void chiaki_connect_video_profile_preset(ChiakiConnectVideoProfile* profile, ChiakiVideoResolutionPreset resolution, ChiakiVideoFPSPreset fps)
 
+    ctypedef session_t* ChiakiHolepunchSession
+
     cdef struct chiaki_connect_info_t:
         bint  ps5
         const char* host
-        char regist_key[0x10]
-        uint8_t morning[0x10]
+        char[0x10] regist_key
+        uint8_t[0x10] morning
         ChiakiConnectVideoProfile video_profile
         bint  video_profile_auto_downgrade
         bint  enable_keyboard
         bint  enable_dualsense
+        ChiakiHolepunchSession holepunch_session
+        chiaki_socket_t *rudp_sock
+        uint8_t[8] psn_account_id #PSN_ACCOUNT_ID_SIZE
 
     ctypedef chiaki_connect_info_t ChiakiConnectInfo
 
@@ -895,6 +1119,7 @@ cdef extern from "chiaki/session.h":
         CHIAKI_QUIT_REASON_STREAM_CONNECTION_UNKNOWN
         CHIAKI_QUIT_REASON_STREAM_CONNECTION_REMOTE_DISCONNECTED
         CHIAKI_QUIT_REASON_STREAM_CONNECTION_REMOTE_SHUTDOWN
+        CHIAKI_QUIT_REASON_PSN_REGIST_FAILED
 
     const char* chiaki_quit_reason_string(ChiakiQuitReason reason)
 
@@ -934,6 +1159,7 @@ cdef extern from "chiaki/session.h":
     ctypedef enum ChiakiEventType:
         CHIAKI_EVENT_CONNECTED
         CHIAKI_EVENT_LOGIN_PIN_REQUEST
+        CHIAKI_EVENT_HOLEPUNCH
         CHIAKI_EVENT_KEYBOARD_OPEN
         CHIAKI_EVENT_KEYBOARD_TEXT_CHANGE
         CHIAKI_EVENT_KEYBOARD_REMOTE_CLOSE
@@ -944,6 +1170,9 @@ cdef extern from "chiaki/session.h":
     cdef struct _ChiakiEvent_ChiakiEvent_chiaki_event_t_login_pin_request_s:
         bint  pin_incorrect
 
+    cdef struct data_holepunch_t:
+        bint finished
+
     cdef struct chiaki_event_t:
         ChiakiEventType type
         ChiakiQuitEvent quit
@@ -951,33 +1180,36 @@ cdef extern from "chiaki/session.h":
         ChiakiRumbleEvent rumble
         ChiakiTriggerEffectsEvent trigger_effects
         _ChiakiEvent_ChiakiEvent_chiaki_event_t_login_pin_request_s login_pin_request
+        data_holepunch_t data_holepunch
 
     ctypedef chiaki_event_t ChiakiEvent
 
     ctypedef void (*ChiakiEventCallback)(ChiakiEvent* event, void* user)
 
-    ctypedef bint  (*ChiakiVideoSampleCallback)(uint8_t* buf, size_t buf_size, void* user)
+    ctypedef bint  (*ChiakiVideoSampleCallback)(uint8_t* buf, size_t buf_size, int32_t frames_lost, bint frame_recovered, void* user)
 
     cdef struct _ChiakiSession_ChiakiSession_chiaki_session_t_connect_info_s:
         bint  ps5
         addrinfo* host_addrinfos
         addrinfo* host_addrinfo_selected
-        char hostname[256]
-        char regist_key[0x10]
-        uint8_t morning[0x10]
-        uint8_t did[32]
+        char[256] hostname
+        char[0x10] regist_key
+        uint8_t[0x10] morning
+        uint8_t[32] did
         ChiakiConnectVideoProfile video_profile
-        bint  video_profile_auto_downgrade
-        bint  enable_keyboard
-        bint  enable_dualsense
+        bint video_profile_auto_downgrade
+        bint enable_keyboard
+        bint enable_dualsense
+        uint8_t[8] psn_account_id #PSN_ACCOUNT_ID_SIZE again
+
 
     cdef struct chiaki_session_t:
         _ChiakiSession_ChiakiSession_chiaki_session_t_connect_info_s connect_info
         ChiakiTarget target
-        uint8_t nonce[0x10]
+        uint8_t[0x10] nonce
         ChiakiRPCrypt rpcrypt
-        char session_id[80]
-        uint8_t handshake_key[0x10]
+        char[80] session_id
+        uint8_t[0x10] handshake_key
         uint32_t mtu_in
         uint32_t mtu_out
         uint64_t rtt_us
@@ -990,18 +1222,24 @@ cdef extern from "chiaki/session.h":
         void* video_sample_cb_user
         ChiakiAudioSink audio_sink
         ChiakiAudioSink haptics_sink
+        ChiakiCtrlDisplaySink display_sink
         ChiakiThread session_thread
         ChiakiCond state_cond
         ChiakiMutex state_mutex
         ChiakiStopPipe stop_pipe
-        bint  should_stop
-        bint  ctrl_failed
-        bint  ctrl_session_id_received
-        bint  ctrl_login_pin_requested
-        bint  login_pin_entered
+        bint should_stop
+        bint ctrl_failed
+        bint ctrl_session_id_received
+        bint ctrl_login_pin_requested
+        bint ctrl_first_heartbeat_received
+        bint login_pin_entered
+        bint psn_regist_succeeded
+        bint stream_connection_switch_received
         uint8_t* login_pin
         size_t login_pin_size
         ChiakiCtrl ctrl
+        ChiakiHolepunchSession holepunch_session
+        ChiakiRudp rudp
         ChiakiLog* log
         ChiakiStreamConnection stream_connection
         ChiakiControllerState controller_state
@@ -1022,7 +1260,13 @@ cdef extern from "chiaki/session.h":
 
     ChiakiErrorCode chiaki_session_set_login_pin(ChiakiSession* session, const uint8_t* pin, size_t pin_size)
 
+    ChiakiErrorCode chiaki_session_set_stream_connection_switch_received(ChiakiSession *session)
+
     ChiakiErrorCode chiaki_session_goto_bed(ChiakiSession* session)
+
+    ChiakiErrorCode chiaki_session_toggle_microphone(ChiakiSession *session, bint muted)
+
+    ChiakiErrorCode chiaki_session_connect_microphone(ChiakiSession *session)
 
     ChiakiErrorCode chiaki_session_keyboard_set_text(ChiakiSession* session, const char* text)
 
@@ -1030,13 +1274,18 @@ cdef extern from "chiaki/session.h":
 
     ChiakiErrorCode chiaki_session_keyboard_accept(ChiakiSession* session)
 
+    ChiakiErrorCode chiaki_session_go_home(ChiakiSession *session)
+
     void chiaki_session_set_event_cb(ChiakiSession* session, ChiakiEventCallback cb, void* user)
+
+    void chiaki_session_ctrl_set_display_sink(ChiakiSession *session, ChiakiCtrlDisplaySink *sink)
 
     void chiaki_session_set_video_sample_cb(ChiakiSession* session, ChiakiVideoSampleCallback cb, void* user)
 
     void chiaki_session_set_audio_sink(ChiakiSession* session, ChiakiAudioSink* sink)
 
     void chiaki_session_set_haptics_sink(ChiakiSession* session, ChiakiAudioSink* sink)
+
 
 cdef extern from "chiaki/regist.h":
 
@@ -1045,22 +1294,26 @@ cdef extern from "chiaki/regist.h":
         const char* host
         bint  broadcast
         const char* psn_online_id
-        uint8_t psn_account_id[8]
+        uint8_t[8] psn_account_id
         uint32_t pin
+        uint32_t console_pin
+        ChiakiHolepunchRegistInfo *holepunch_info
+        ChiakiRudp rudp
 
     ctypedef chiaki_regist_info_t ChiakiRegistInfo
 
     cdef struct chiaki_registered_host_t:
         ChiakiTarget target
-        char ap_ssid[0x30]
-        char ap_bssid[0x20]
-        char ap_key[0x50]
-        char ap_name[0x20]
-        uint8_t server_mac[6]
-        char server_nickname[0x20]
-        char rp_regist_key[0x10]
+        char[0x30] ap_ssid
+        char[0x20] ap_bssid
+        char[0x50] ap_key
+        char[0x20] ap_name
+        uint8_t[6] server_mac
+        char[0x20] server_nickname
+        char[0x10] rp_regist_key
         uint32_t rp_key_type
-        uint8_t rp_key[0x10]
+        uint8_t[0x10] rp_key
+        uint32_t console_pin
 
     ctypedef chiaki_registered_host_t ChiakiRegisteredHost
 
@@ -1095,4 +1348,4 @@ cdef extern from "chiaki/regist.h":
 
     void chiaki_regist_stop(ChiakiRegist* regist)
 
-    ChiakiErrorCode chiaki_regist_request_payload_format(ChiakiTarget target, const uint8_t* ambassador, uint8_t* buf, size_t* buf_size, ChiakiRPCrypt* crypt, const char* psn_online_id, const uint8_t* psn_account_id, uint32_t pin)
+    ChiakiErrorCode chiaki_regist_request_payload_format(ChiakiTarget target, const uint8_t* ambassador, uint8_t* buf, size_t* buf_size, ChiakiRPCrypt* crypt, const char* psn_online_id, const uint8_t* psn_account_id, uint32_t pin, ChiakiHolepunchRegistInfo *holepunch_info)
