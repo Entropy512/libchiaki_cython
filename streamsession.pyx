@@ -73,6 +73,7 @@ cdef class ChiakiStreamSession:
         connect_info.morning = self.rpkey
         connect_info.regist_key = self.regkey
         connect_info.enable_dualsense = True
+        connect_info.holepunch_session = NULL
 
         err = chiaki_session_init(&self.session, &connect_info, &self.log)
         if(err != CHIAKI_ERR_SUCCESS):
