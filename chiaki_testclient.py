@@ -12,7 +12,7 @@ from numpy_ringbuffer import RingBuffer
 import pyformulas as pf
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
-from time import time
+from time import time, sleep
 import scipy
 
 import pygame
@@ -32,6 +32,11 @@ def print_event(e):
 
         evfmt = "time {:<16} type {} ({}), code {:<4} ({}), value {}"
         print(evfmt.format(e.timestamp(), e.type, ecodes.EV[e.type], e.code, codename, e.value))
+
+def expo_stick_remap(str, value):
+    normval = value/32767
+    mapval = (1-str)*normval + str*np.power(normval,3.0)
+    return int(mapval*32767)
 
 """
 Xbox Elite event mappings:
@@ -99,9 +104,9 @@ def handle_evdev_event(ss,e):
             case ecodes.ABS_Z:
                 ss.HandleAxisEvent(JoyAxes.LZ, e.value >> 2)
             case ecodes.ABS_RX:
-                ss.HandleAxisEvent(JoyAxes.RX, e.value)
+                ss.HandleAxisEvent(JoyAxes.RX, expo_stick_remap(0.5,e.value))
             case ecodes.ABS_RY:
-                ss.HandleAxisEvent(JoyAxes.RY, e.value)
+                ss.HandleAxisEvent(JoyAxes.RY, expo_stick_remap(0.5,e.value))
             case ecodes.ABS_RZ:
                 ss.HandleAxisEvent(JoyAxes.RZ, e.value >> 2)
             case ecodes.ABS_HAT0X:
@@ -292,6 +297,7 @@ def main():
                 image = np.flip(image[:,:,0:3], axis=2) #screen wants BGR, and we want to drop alpha
                 screen.update(image)
 
+        sleep(0)
 # https://stackoverflow.com/questions/42169348/calculating-bandpower-of-a-signal-in-python
 def get_sigpower(data):
     f, Pxx = scipy.signal.periodogram(np.array(data), fs=fs, scaling='density')
