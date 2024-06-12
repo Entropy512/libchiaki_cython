@@ -1,26 +1,27 @@
-from distutils.core import setup
-from distutils.extension import Extension
+from setuptools import setup
+from setuptools import Extension
 from Cython.Build import cythonize
 
+libraries = ["chiaki", "crypto", "ssl", "protobuf-nanopb", "curl", "json-c", "Jerasure", "miniupnpc"]
 discovery_extension = Extension(
     name="chiaki_discovery",
     sources=["discovery.pyx"],
-    libraries=["chiaki", "crypto", "ssl", "gf_complete", "jerasure"]
+    libraries=libraries
 )
 
 wakeup_extension = Extension(
     name="chiaki_wakeup",
     sources=["wakeup.pyx"],
-    libraries=["chiaki", "crypto", "ssl", "gf_complete", "jerasure"]
+    libraries=libraries
 )
 
 streamsession_extension = Extension(
     name="chiaki_streamsession",
     sources=["streamsession.pyx"],
-    libraries=["chiaki", "crypto", "ssl", "gf_complete", "jerasure"]
+    libraries=libraries
 )
 
 setup(
     name="chiaki",
-    ext_modules=cythonize([discovery_extension, wakeup_extension, streamsession_extension], gdb_debug=True)
+    ext_modules=cythonize([discovery_extension, wakeup_extension, streamsession_extension])
 )
