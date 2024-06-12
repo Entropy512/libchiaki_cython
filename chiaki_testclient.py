@@ -282,9 +282,8 @@ def main():
         if((time() - last_power_time) >= buffer_time):
             last_power_time = time()
             lpow, hpow = get_sigpower(np.array(rbuf))
-            joy = joysticks[list(joysticks.keys())[0]] #FIXME:  Handle more than one controller properly
-            joy.rumble(lpow, hpow, int(buffer_time*1000))
-            #print("haptics low: {}, haptics high: {}".format(lpow, hpow))
+            for joy in joysticks.keys():
+                joysticks[joy].rumble(lpow, hpow, int(buffer_time*1000))
 
         global last_plot_time
         if(0):
