@@ -156,7 +156,8 @@ cdef class ChiakiStreamSession:
         The Cython documentation is really unclear as to how to derefence a buffer pointer to something that Python functions will accept.  Most documentation talks about
         memoryviews of Python objects, not the other way around.  It turns out that you need to use Python's slicing syntax - see buf[:buf_size]
         '''
-        myarr = np.frombuffer(buf[:buf_size], dtype='int16', count=-1).newbyteorder('<')
+        myarr = np.frombuffer(buf[:buf_size], dtype='int16', count=-1)
+        myarr = myarr.view(myarr.dtype.newbyteorder('<'))
         #https://github.com/cython/cython/tree/master/Demos/callback
         if(self.python_haptics_callback != NULL):
             (<object>self.python_haptics_callback)(myarr)
