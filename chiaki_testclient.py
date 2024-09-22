@@ -110,10 +110,10 @@ def handle_evdev_event(ss,e):
             case ecodes.ABS_RZ:
                 ss.HandleAxisEvent(JoyAxes.RZ, e.value >> 2)
             case ecodes.ABS_HAT0X:
-                ss.HandleButtonEvent(JoyButtons.DPAD_LEFT, (e.value == -1), sendImm=False)
+                ss.HandleButtonEvent(JoyButtons.DPAD_LEFT, (e.value == -1))
                 ss.HandleButtonEvent(JoyButtons.DPAD_RIGHT, (e.value == 1))
             case ecodes.ABS_HAT0Y:
-                ss.HandleButtonEvent(JoyButtons.DPAD_UP, (e.value == -1), sendImm=False)
+                ss.HandleButtonEvent(JoyButtons.DPAD_UP, (e.value == -1))
                 ss.HandleButtonEvent(JoyButtons.DPAD_DOWN, (e.value == 1))
 
 '''
@@ -146,6 +146,8 @@ Why does xpad give the right paddles lower values than left???
 '''
 def handle_pygame_event(ss,e):
     global joysticks
+    if not hasattr(handle_pygame_event, "lastsend"):
+        handle_pygame_event.lastsend = time()  # it doesn't exist yet, so initialize it
 
     if e.type == pygame.JOYDEVICEADDED:
         # This event will be generated when the program starts for every
@@ -202,10 +204,14 @@ def handle_pygame_event(ss,e):
 
     if e.type == pygame.JOYHATMOTION:
         if(e.hat == 0):
-                ss.HandleButtonEvent(JoyButtons.DPAD_LEFT, (e.value[0] == -1), sendImm=False)
-                ss.HandleButtonEvent(JoyButtons.DPAD_RIGHT, (e.value[0] == 1), sendImm=False)
-                ss.HandleButtonEvent(JoyButtons.DPAD_UP, (e.value[1] == 1), sendImm=False)
+                ss.HandleButtonEvent(JoyButtons.DPAD_LEFT, (e.value[0] == -1))
+                ss.HandleButtonEvent(JoyButtons.DPAD_RIGHT, (e.value[0] == 1))
+                ss.HandleButtonEvent(JoyButtons.DPAD_UP, (e.value[1] == 1))
                 ss.HandleButtonEvent(JoyButtons.DPAD_DOWN, (e.value[1] == -1))
+
+    if((time() - handle_pygame_event.lastsend) >= 0.004):
+        ss.SendFeedbackState()
+        handle_pygame_event.lastsend = time()
 
 def haptics_callback(data):
     # requires https://github.com/eric-wieser/numpy_ringbuffer/pull/18

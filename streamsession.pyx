@@ -118,19 +118,19 @@ cdef class ChiakiStreamSession:
         elif(axis == JoyAxes.LZ):
             self.controller_state.l2_state = value
 
-        self.SendFeedbackState()
+#        self.SendFeedbackState()
 
-    def HandleButtonEvent(self, key, pressed, sendImm = True):
+    def HandleButtonEvent(self, key, pressed):
         cdef ChiakiControllerButton button = key
         if(pressed):
-            self.keyboard_state.buttons |= button
+            self.controller_state.buttons |= button
         else:
-            self.keyboard_state.buttons &= ~button
+            self.controller_state.buttons &= ~button
 
-        if(sendImm):
-            self.SendFeedbackState()
+#        if(sendImm):
+#            self.SendFeedbackState()
 
-    cdef void SendFeedbackState(self):
+    def SendFeedbackState(self):
         cdef ChiakiControllerState state
         chiaki_controller_state_set_idle(&state)
         chiaki_controller_state_or(&state, &state, &self.controller_state)
