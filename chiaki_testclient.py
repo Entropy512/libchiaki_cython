@@ -33,10 +33,10 @@ def print_event(e):
         evfmt = "time {:<16} type {} ({}), code {:<4} ({}), value {}"
         print(evfmt.format(e.timestamp(), e.type, ecodes.EV[e.type], e.code, codename, e.value))
 
-def expo_stick_remap(str, value):
-    normval = value/32767
+def expo_stick_remap(inscale, outscale,str, dz, value):
+    normval = np.sign(value)*max((abs(value)-dz),0)/(inscale-dz)
     mapval = (1-str)*normval + str*np.power(normval,3.0)
-    return int(mapval*32767)
+    return int(np.clip(mapval, -1.0, 1.0)*outscale)
 
 """
 Xbox Elite event mappings:
@@ -98,15 +98,15 @@ def handle_evdev_event(ss,e):
     if e.type == ecodes.EV_ABS:
         match e.code:
             case ecodes.ABS_X:
-                ss.HandleAxisEvent(JoyAxes.LX, e.value)
+                ss.HandleAxisEvent(JoyAxes.LX, expo_stick_remap(32767, 32767, 0.5, 1024, e.value))
             case ecodes.ABS_Y:
-                ss.HandleAxisEvent(JoyAxes.LY, e.value)
+                ss.HandleAxisEvent(JoyAxes.LY, expo_stick_remap(32767, 32767, 0.5, 1024, e.value))
             case ecodes.ABS_Z:
                 ss.HandleAxisEvent(JoyAxes.LZ, e.value >> 2)
             case ecodes.ABS_RX:
-                ss.HandleAxisEvent(JoyAxes.RX, expo_stick_remap(0.5,e.value))
+                ss.HandleAxisEvent(JoyAxes.RX, expo_stick_remap(32767, 32767, 0.5, 0, e.value))
             case ecodes.ABS_RY:
-                ss.HandleAxisEvent(JoyAxes.RY, expo_stick_remap(0.5,e.value))
+                ss.HandleAxisEvent(JoyAxes.RY, expo_stick_remap(32767, 32767, 0.5, 0, e.value))
             case ecodes.ABS_RZ:
                 ss.HandleAxisEvent(JoyAxes.RZ, e.value >> 2)
             case ecodes.ABS_HAT0X:
@@ -188,15 +188,15 @@ def handle_pygame_event(ss,e):
     if e.type == pygame.JOYAXISMOTION:
         match e.axis:
             case 0:
-                ss.HandleAxisEvent(JoyAxes.LX, int(e.value*32767))
+                ss.HandleAxisEvent(JoyAxes.LX, int(expo_stick_remap(1.0, 32767, 0.5, 0.025, e.value)))
             case 1:
-                ss.HandleAxisEvent(JoyAxes.LY, int(e.value*32767))
+                ss.HandleAxisEvent(JoyAxes.LY, int(expo_stick_remap(1.0, 32767, 0.5, 0.025, e.value)))
             case 2:
                 ss.HandleAxisEvent(JoyAxes.LZ, int(max(0,(e.value+1)*255/2)))
             case 3:
-                ss.HandleAxisEvent(JoyAxes.RX, int(e.value*32767))
+                ss.HandleAxisEvent(JoyAxes.RX, int(expo_stick_remap(1.0, 32767, 0.5, 0.0, e.value)))
             case 4:
-                ss.HandleAxisEvent(JoyAxes.RY, int(e.value*32767))
+                ss.HandleAxisEvent(JoyAxes.RY, int(expo_stick_remap(1.0, 32767, 0.5, 0.0, e.value)))
             case 5:
                 ss.HandleAxisEvent(JoyAxes.RZ, int(max(0,(e.value+1)*255/2)))
 
