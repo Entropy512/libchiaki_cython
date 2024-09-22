@@ -303,8 +303,8 @@ def get_sigpower(data):
     nyq = fs/2
     ind_lowcut = np.argmax(f > 85) - 1
     ind_highcut = np.argmax(f >= 350) - 1 #Do we just want to take all high frequency content???
-    lowpow = np.sqrt(scipy.integrate.trapz(Pxx[:ind_lowcut], f[:ind_lowcut]))
-    highpow = np.sqrt(scipy.integrate.trapz(Pxx[ind_lowcut:ind_highcut], f[ind_lowcut:ind_highcut]))
+    lowpow = np.sqrt(scipy.integrate.trapezoid(Pxx[:ind_lowcut], f[:ind_lowcut]))
+    highpow = np.sqrt(scipy.integrate.trapezoid(Pxx[ind_lowcut:ind_highcut], f[ind_lowcut:ind_highcut]))
     return lowpow, highpow
 
 try:
