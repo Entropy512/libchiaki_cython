@@ -17,6 +17,8 @@ import scipy
 
 import pygame
 
+from eventtimer import EventTimer
+
 def print_event(e):
     if e.type == ecodes.EV_SYN:
         if e.code == ecodes.SYN_MT_REPORT:
@@ -146,8 +148,9 @@ Why does xpad give the right paddles lower values than left???
 '''
 def handle_pygame_event(ss,e):
     global joysticks
-    if not hasattr(handle_pygame_event, "lastsend"):
-        handle_pygame_event.lastsend = time()  # it doesn't exist yet, so initialize it
+    if not hasattr(handle_pygame_event, "ievtimer"):
+        handle_pygame_event.ievtimer = EventTimer()  # it doesn't exist yet, so initialize it
+        handle_pygame_event.ievtimer.start(0.004, periodic=True)
 
     if e.type == pygame.JOYDEVICEADDED:
         # This event will be generated when the program starts for every
@@ -209,9 +212,8 @@ def handle_pygame_event(ss,e):
                 ss.HandleButtonEvent(JoyButtons.DPAD_UP, (e.value[1] == 1))
                 ss.HandleButtonEvent(JoyButtons.DPAD_DOWN, (e.value[1] == -1))
 
-    if((time() - handle_pygame_event.lastsend) >= 0.004):
+    if(handle_pygame_event.ievtimer.check()):
         ss.SendFeedbackState()
-        handle_pygame_event.lastsend = time()
 
 def haptics_callback(data):
     # requires https://github.com/eric-wieser/numpy_ringbuffer/pull/18
