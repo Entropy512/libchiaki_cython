@@ -43,6 +43,14 @@ cdef class ChiakiStreamSession:
     cdef public bint connected
     cdef void* python_haptics_callback
 
+    @property
+    def controller_state(self):
+        return self.controller_state
+
+    @controller_state.setter
+    def controller_state(self, value):
+        self.controller_state = value
+
     def __cinit__(self, host=None, regkey = None, rpkey = None):
         self.regkey = <char*> regkey
         self.rpkey = <char*> rpkey
