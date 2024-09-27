@@ -35,8 +35,7 @@ cdef class ChiakiStreamSession:
     cdef ChiakiSession session
     cdef ChiakiTarget target
     cdef bint is_ps5
-    cdef ChiakiControllerState controller_state
-    cdef ChiakiControllerState keyboard_state
+    cdef ChiakiControllerState[3] controller_states
     cdef char* regkey
     cdef char* rpkey
     cdef char* host
@@ -44,12 +43,12 @@ cdef class ChiakiStreamSession:
     cdef void* python_haptics_callback
 
     @property
-    def controller_state(self):
-        return self.controller_state
+    def controller_states(self):
+        return self.controller_states
 
-    @controller_state.setter
-    def controller_state(self, value):
-        self.controller_state = value
+    @controller_states.setter
+    def controller_states(self, value):
+        self.controller_states = value
 
     def __cinit__(self, host=None, regkey = None, rpkey = None):
         self.regkey = <char*> regkey
@@ -65,9 +64,8 @@ cdef class ChiakiStreamSession:
 
         chiaki_log_init(&self.log, CHIAKI_LOG_ERROR, chiaki_log_cb_print, NULL)
 
-        chiaki_controller_state_set_idle(&self.controller_state)
-    
-        chiaki_controller_state_set_idle(&self.keyboard_state)
+        for j in range(3):
+            chiaki_controller_state_set_idle(&self.controller_states[j])
 
         cdef ChiakiConnectVideoProfile vid_profile
         chiaki_connect_video_profile_preset(&vid_profile, CHIAKI_VIDEO_RESOLUTION_PRESET_360p, CHIAKI_VIDEO_FPS_PRESET_30)
@@ -112,28 +110,28 @@ cdef class ChiakiStreamSession:
     cpdef void GoToBed(self):
         chiaki_session_goto_bed(&self.session)
 
-    def HandleAxisEvent(self, axis, value):
+    def HandleAxisEvent(self, idx, axis, value):
         if(axis == JoyAxes.RX):
-            self.controller_state.right_x = value
+            self.controller_states[idx].right_x = value
         elif(axis == JoyAxes.RY):
-            self.controller_state.right_y = value
+            self.controller_states[idx].right_y = value
         elif(axis == JoyAxes.RZ):
-            self.controller_state.r2_state = value
+            self.controller_states[idx].r2_state = value
         elif(axis == JoyAxes.LX):
-            self.controller_state.left_x = value
+            self.controller_states[idx].left_x = value
         elif(axis == JoyAxes.LY):
-            self.controller_state.left_y = value
+            self.controller_states[idx].left_y = value
         elif(axis == JoyAxes.LZ):
-            self.controller_state.l2_state = value
+            self.controller_states[idx].l2_state = value
 
 #        self.SendFeedbackState()
 
-    def HandleButtonEvent(self, key, pressed):
+    def HandleButtonEvent(self, idx, key, pressed):
         cdef ChiakiControllerButton button = key
         if(pressed):
-            self.controller_state.buttons |= button
+            self.controller_states[idx].buttons |= button
         else:
-            self.controller_state.buttons &= ~button
+            self.controller_states[idx].buttons &= ~button
 
 #        if(sendImm):
 #            self.SendFeedbackState()
@@ -141,8 +139,8 @@ cdef class ChiakiStreamSession:
     def SendFeedbackState(self):
         cdef ChiakiControllerState state
         chiaki_controller_state_set_idle(&state)
-        chiaki_controller_state_or(&state, &state, &self.controller_state)
-        chiaki_controller_state_or(&state, &state, &self.keyboard_state)
+        for j in range(3):
+            chiaki_controller_state_or(&state, &state, &self.controller_states[j])
         chiaki_session_set_controller_state(&self.session, &state)
 
     def set_haptics_callback(self, func):

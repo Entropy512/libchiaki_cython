@@ -67,56 +67,56 @@ def handle_evdev_event(ss,e):
                 ss.Stop()
                 exit()
             case k if k in [ecodes.KEY_A, ecodes.KEY_LEFT]:
-                ss.HandleButtonEvent(JoyButtons.DPAD_LEFT, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.DPAD_LEFT, e.value)
             case k if k in [ecodes.KEY_D, ecodes.KEY_RIGHT]:
-                ss.HandleButtonEvent(JoyButtons.DPAD_RIGHT, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.DPAD_RIGHT, e.value)
             case k if k in [ecodes.KEY_W, ecodes.KEY_UP]:
-                ss.HandleButtonEvent(JoyButtons.DPAD_UP, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.DPAD_UP, e.value)
             case k if k in [ecodes.KEY_S, ecodes.KEY_DOWN]:
-                ss.HandleButtonEvent(JoyButtons.DPAD_DOWN, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.DPAD_DOWN, e.value)
             case k if k in [ecodes.BTN_MODE]:
-                ss.HandleButtonEvent(JoyButtons.TOUCHPAD, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.TOUCHPAD, e.value)
             case k if k in [ecodes.BTN_SELECT]:
-                ss.HandleButtonEvent(JoyButtons.PS, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.PS, e.value)
             case k if k in [ecodes.BTN_START]:
-                ss.HandleButtonEvent(JoyButtons.OPTIONS, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.OPTIONS, e.value)
             case k if k in [ecodes.BTN_THUMBL]:
-                ss.HandleButtonEvent(JoyButtons.L3, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.L3, e.value)
             case k if k in [ecodes.BTN_THUMBR]:
-                ss.HandleButtonEvent(JoyButtons.R3, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.R3, e.value)
             case k if k in [ecodes.BTN_TL]:
-                ss.HandleButtonEvent(JoyButtons.L1, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.L1, e.value)
             case k if k in [ecodes.BTN_TR]:
-                ss.HandleButtonEvent(JoyButtons.R1, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.R1, e.value)
             case k if k in [ecodes.BTN_A]:
-                ss.HandleButtonEvent(JoyButtons.CROSS, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.CROSS, e.value)
             case k if k in [ecodes.BTN_B]:
-                ss.HandleButtonEvent(JoyButtons.MOON, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.MOON, e.value)
             case k if k in [ecodes.BTN_X]:
-                ss.HandleButtonEvent(JoyButtons.BOX, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.BOX, e.value)
             case k if k in [ecodes.BTN_Y]:
-                ss.HandleButtonEvent(JoyButtons.PYRAMID, e.value)
+                ss.HandleButtonEvent(1, JoyButtons.PYRAMID, e.value)
 
     if e.type == ecodes.EV_ABS:
         match e.code:
             case ecodes.ABS_X:
-                ss.HandleAxisEvent(JoyAxes.LX, expo_stick_remap(32767, 32767, 0.5, 1024, e.value))
+                ss.HandleAxisEvent(1, JoyAxes.LX, expo_stick_remap(32767, 32767, 0.5, 1024, e.value))
             case ecodes.ABS_Y:
-                ss.HandleAxisEvent(JoyAxes.LY, expo_stick_remap(32767, 32767, 0.5, 1024, e.value))
+                ss.HandleAxisEvent(1, JoyAxes.LY, expo_stick_remap(32767, 32767, 0.5, 1024, e.value))
             case ecodes.ABS_Z:
-                ss.HandleAxisEvent(JoyAxes.LZ, e.value >> 2)
+                ss.HandleAxisEvent(1, JoyAxes.LZ, e.value >> 2)
             case ecodes.ABS_RX:
-                ss.HandleAxisEvent(JoyAxes.RX, expo_stick_remap(32767, 32767, 0.5, 0, e.value))
+                ss.HandleAxisEvent(1, JoyAxes.RX, expo_stick_remap(32767, 32767, 0.5, 0, e.value))
             case ecodes.ABS_RY:
-                ss.HandleAxisEvent(JoyAxes.RY, expo_stick_remap(32767, 32767, 0.5, 0, e.value))
+                ss.HandleAxisEvent(1, JoyAxes.RY, expo_stick_remap(32767, 32767, 0.5, 0, e.value))
             case ecodes.ABS_RZ:
-                ss.HandleAxisEvent(JoyAxes.RZ, e.value >> 2)
+                ss.HandleAxisEvent(1, JoyAxes.RZ, e.value >> 2)
             case ecodes.ABS_HAT0X:
-                ss.HandleButtonEvent(JoyButtons.DPAD_LEFT, (e.value == -1))
-                ss.HandleButtonEvent(JoyButtons.DPAD_RIGHT, (e.value == 1))
+                ss.HandleButtonEvent(1, JoyButtons.DPAD_LEFT, (e.value == -1))
+                ss.HandleButtonEvent(1, JoyButtons.DPAD_RIGHT, (e.value == 1))
             case ecodes.ABS_HAT0Y:
-                ss.HandleButtonEvent(JoyButtons.DPAD_UP, (e.value == -1))
-                ss.HandleButtonEvent(JoyButtons.DPAD_DOWN, (e.value == 1))
+                ss.HandleButtonEvent(1, JoyButtons.DPAD_UP, (e.value == -1))
+                ss.HandleButtonEvent(1, JoyButtons.DPAD_DOWN, (e.value == 1))
 
 '''
 Xbox Elite mappings, pygame edition:
@@ -167,50 +167,50 @@ def handle_pygame_event(ss,e):
         value = (e.type == pygame.JOYBUTTONDOWN)
         match e.button:
             case 8: #Xbox button
-                ss.HandleButtonEvent(JoyButtons.TOUCHPAD, value)
+                ss.HandleButtonEvent(0, JoyButtons.TOUCHPAD, value)
             case 6: #Share?  Select? Guide?
-                ss.HandleButtonEvent(JoyButtons.PS, value)
+                ss.HandleButtonEvent(0, JoyButtons.PS, value)
             case 7: #Hamburger?
-                ss.HandleButtonEvent(JoyButtons.OPTIONS, value)
+                ss.HandleButtonEvent(0, JoyButtons.OPTIONS, value)
             case k if k in [9, 14]: #Left thumb or lower left paddle
-                ss.HandleButtonEvent(JoyButtons.L3, value)
+                ss.HandleButtonEvent(0, JoyButtons.L3, value)
             case k if k in [10, 12]: #Right thumb or lower right paddle
-                ss.HandleButtonEvent(JoyButtons.R3, value)
+                ss.HandleButtonEvent(0, JoyButtons.R3, value)
             case k if k in [4, 13]: #LT or upper left paddle
-                ss.HandleButtonEvent(JoyButtons.L1, value)
+                ss.HandleButtonEvent(0, JoyButtons.L1, value)
             case k if k in [5, 11]: #RT or upper right paddle
-                ss.HandleButtonEvent(JoyButtons.R1, value)
+                ss.HandleButtonEvent(0, JoyButtons.R1, value)
             case 0: #A
-                ss.HandleButtonEvent(JoyButtons.CROSS, value)
+                ss.HandleButtonEvent(0, JoyButtons.CROSS, value)
             case 1: #B
-                ss.HandleButtonEvent(JoyButtons.MOON, value)
+                ss.HandleButtonEvent(0, JoyButtons.MOON, value)
             case 2: #X
-                ss.HandleButtonEvent(JoyButtons.BOX, value)
+                ss.HandleButtonEvent(0, JoyButtons.BOX, value)
             case 3: #Y
-                ss.HandleButtonEvent(JoyButtons.PYRAMID, value)
+                ss.HandleButtonEvent(0, JoyButtons.PYRAMID, value)
 
 
     if e.type == pygame.JOYAXISMOTION:
         match e.axis:
             case 0:
-                ss.HandleAxisEvent(JoyAxes.LX, int(expo_stick_remap(1.0, 32767, 0.5, 0.025, e.value)))
+                ss.HandleAxisEvent(0, JoyAxes.LX, int(expo_stick_remap(1.0, 32767, 0.5, 0.025, e.value)))
             case 1:
-                ss.HandleAxisEvent(JoyAxes.LY, int(expo_stick_remap(1.0, 32767, 0.5, 0.025, e.value)))
+                ss.HandleAxisEvent(0, JoyAxes.LY, int(expo_stick_remap(1.0, 32767, 0.5, 0.025, e.value)))
             case 2:
-                ss.HandleAxisEvent(JoyAxes.LZ, int(max(0,(e.value+1)*255/2)))
+                ss.HandleAxisEvent(0, JoyAxes.LZ, int(max(0,(e.value+1)*255/2)))
             case 3:
-                ss.HandleAxisEvent(JoyAxes.RX, int(expo_stick_remap(1.0, 32767, 0.5, 0.0, e.value)))
+                ss.HandleAxisEvent(0, JoyAxes.RX, int(expo_stick_remap(1.0, 32767, 0.5, 0.0, e.value)))
             case 4:
-                ss.HandleAxisEvent(JoyAxes.RY, int(expo_stick_remap(1.0, 32767, 0.5, 0.0, e.value)))
+                ss.HandleAxisEvent(0, JoyAxes.RY, int(expo_stick_remap(1.0, 32767, 0.5, 0.0, e.value)))
             case 5:
-                ss.HandleAxisEvent(JoyAxes.RZ, int(max(0,(e.value+1)*255/2)))
+                ss.HandleAxisEvent(0, JoyAxes.RZ, int(max(0,(e.value+1)*255/2)))
 
     if e.type == pygame.JOYHATMOTION:
         if(e.hat == 0):
-                ss.HandleButtonEvent(JoyButtons.DPAD_LEFT, (e.value[0] == -1))
-                ss.HandleButtonEvent(JoyButtons.DPAD_RIGHT, (e.value[0] == 1))
-                ss.HandleButtonEvent(JoyButtons.DPAD_UP, (e.value[1] == 1))
-                ss.HandleButtonEvent(JoyButtons.DPAD_DOWN, (e.value[1] == -1))
+                ss.HandleButtonEvent(0, JoyButtons.DPAD_LEFT, (e.value[0] == -1))
+                ss.HandleButtonEvent(0, JoyButtons.DPAD_RIGHT, (e.value[0] == 1))
+                ss.HandleButtonEvent(0, JoyButtons.DPAD_UP, (e.value[1] == 1))
+                ss.HandleButtonEvent(0, JoyButtons.DPAD_DOWN, (e.value[1] == -1))
 
     if(handle_pygame_event.ievtimer.check()):
         ss.SendFeedbackState()
