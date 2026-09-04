@@ -23,5 +23,5 @@ streamsession_extension = Extension(
 
 setup(
     name="chiaki",
-    ext_modules=cythonize([discovery_extension, wakeup_extension, streamsession_extension])
+    ext_modules=cythonize([discovery_extension, wakeup_extension, streamsession_extension], force=True)
 )
