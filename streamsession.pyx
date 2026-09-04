@@ -1,6 +1,7 @@
 from libchiaki cimport *
 from libc.stdio cimport printf
 from libc.stdint cimport uint8_t
+from libcpp cimport bool
 
 import numpy as np
 
@@ -41,6 +42,7 @@ cdef class ChiakiStreamSession:
     cdef char* host
     cdef public bint connected
     cdef void* python_haptics_callback
+    cdef void* python_rumble_callback
 
     @property
     def controller_states(self):
@@ -62,7 +64,7 @@ cdef class ChiakiStreamSession:
         self.target = CHIAKI_TARGET_PS5_1
         self.is_ps5 = True #FIXME:  Support PS4s at some point.  But these controller-only remoteplay hax are primarily for PS5
 
-        chiaki_log_init(&self.log, CHIAKI_LOG_ERROR, chiaki_log_cb_print, NULL)
+        chiaki_log_init(&self.log, CHIAKI_LOG_ALL & ~(CHIAKI_LOG_VERBOSE | CHIAKI_LOG_DEBUG | CHIAKI_LOG_WARNING), chiaki_log_cb_print, NULL)
 
         for j in range(3):
             chiaki_controller_state_set_idle(&self.controller_states[j])
@@ -80,6 +82,7 @@ cdef class ChiakiStreamSession:
         connect_info.regist_key = self.regkey
         connect_info.enable_dualsense = True
         connect_info.holepunch_session = NULL
+        connect_info.auto_regist = False
 
         err = chiaki_session_init(&self.session, &connect_info, &self.log)
         if(err != CHIAKI_ERR_SUCCESS):
@@ -89,6 +92,11 @@ cdef class ChiakiStreamSession:
         haptics_sink.user = <void*> self
         haptics_sink.frame_cb = self.haptics_frame_cb
         chiaki_session_set_haptics_sink(&self.session, &haptics_sink)
+
+        cdef ChiakiCtrlDisplaySink display_sink
+        display_sink.user = <void*> self
+        display_sink.cantdisplay_cb = self.cant_display_cb
+        chiaki_session_ctrl_set_display_sink(&self.session, &display_sink)
 
         chiaki_session_set_event_cb(&self.session, <ChiakiEventCallback> self.event_cb, <void*> self)
 
@@ -145,6 +153,9 @@ cdef class ChiakiStreamSession:
 
     def set_haptics_callback(self, func):
         self.python_haptics_callback = <void*>func
+    
+    def set_rumble_callback(self, func):
+        self.python_rumble_callback = <void*>func
 
     '''
     It does not appear that we can pass a native Python class method to C.  So we pass a staticmethod.  Fortunately Chiaki's callbacks support passing user data,
@@ -169,22 +180,32 @@ cdef class ChiakiStreamSession:
             (<object>self.python_haptics_callback)(myarr)
 
     @staticmethod
-    cdef void event_cb(ChiakiEvent *event, void *selfref) noexcept:
+    cdef void cant_display_cb(void *user, bool cant_display) noexcept:
+        printf("Cant display callback set to %d\n", cant_display )
+
+    @staticmethod
+    cdef void event_cb(ChiakiEvent *event, void *selfref) noexcept with gil:
         self = <ChiakiStreamSession> selfref
-        printf("Event callback received\n")
         if(event.type == CHIAKI_EVENT_CONNECTED):
             printf("Connected event received\n")
             self.connected = True
         elif(event.type == CHIAKI_EVENT_QUIT):
-            self.connected = False
             printf("Session quit, reason: %s\n", event.quit.reason_str)
+            self.connected = False
         elif(event.type == CHIAKI_EVENT_LOGIN_PIN_REQUEST):
             printf("Login PIN request received - handling this is not implemented\n")
         elif(event.type == CHIAKI_EVENT_RUMBLE):
-            printf("Rumble signal received\n")
+            if(self.python_rumble_callback != NULL):
+                (<object>self.python_rumble_callback)(event.rumble.left, event.rumble.right)
+            else:
+                printf("Rumble signal received, lf %d, hf %d\n", event.rumble.left, event.rumble.right)
         elif(event.type == CHIAKI_EVENT_TRIGGER_EFFECTS):
             printf("Trigger effects received\n")
+        elif(event.type == CHIAKI_EVENT_MOTION_RESET):
+            printf("Motion reset event received\n")
+        elif(event.type == CHIAKI_EVENT_LED_COLOR):
+            printf("LED color event received\n")
         else:
-            printf("Unkown event received")
+            printf("Unkown event received with type %d\n", event.type)
 
 

@@ -1,4 +1,5 @@
 from libc.stdint cimport uint32_t, uint16_t, uint8_t, int8_t, int16_t, uint64_t, int32_t
+from libcpp cimport bool
 
 cdef extern from "netinet/in.h":
     struct addrinfo:
@@ -86,6 +87,8 @@ cdef extern from "chiaki/log.h":
         CHIAKI_LOG_INFO
         CHIAKI_LOG_WARNING
         CHIAKI_LOG_ERROR
+
+    const int CHIAKI_LOG_ALL
 
     char chiaki_log_level_char(ChiakiLogLevel level)
 
@@ -472,7 +475,7 @@ cdef extern from "chiaki/ecdh.h":
 
 cdef extern from "chiaki/ctrl.h":
 
-    ctypedef void (*ChiakiCantDisplayCb)(void *user, bint cant_display)
+    ctypedef void (*ChiakiCantDisplayCb)(void *user, bool cant_display)
 
     cdef struct chiaki_ctrl_display_sink_t:
         void *user
@@ -654,6 +657,12 @@ cdef extern from "chiaki/takion.h":
         CHIAKI_TAKION_EVENT_TYPE_DATA
         CHIAKI_TAKION_EVENT_TYPE_DATA_ACK
         CHIAKI_TAKION_EVENT_TYPE_AV
+
+    ctypedef enum ChiakiDisableAudioVideo:
+        CHIAKI_NONE_DISABLED
+        CHIAKI_AUDIO_DISABLED
+        CHIAKI_VIDEO_DISABLED
+        CHIAKI_AUDIO_VIDEO_DISABLED
 
     cdef struct _ChiakiTakionEvent_ChiakiTakionEvent_chiaki_takion_event_t_data_s:
         ChiakiTakionMessageDataType data_type
@@ -852,6 +861,14 @@ cdef extern from "chiaki/congestioncontrol.h":
     ctypedef chiaki_congestion_control_t ChiakiCongestionControl
 
 cdef extern from "chiaki/streamconnection.h":
+
+    cdef enum chiaki_dualsense_effect_intensity_t:
+        Off
+        Weak
+        Medium
+        Strong
+    
+    ctypedef chiaki_dualsense_effect_intensity_t ChiakiDualSenseEffectIntensity
 
     cdef struct chiaki_stream_connection_t:
         chiaki_session_t* session
@@ -1059,6 +1076,22 @@ cdef extern from "chiaki/remote/rudp.h":
         ChiakiLog* log
         ChiakiRudpSendBuffer send_buffer
 
+cdef extern from "chiaki/regist.h":
+    cdef struct chiaki_registered_host_t:
+        ChiakiTarget target
+        char[0x30] ap_ssid
+        char[0x20] ap_bssid
+        char[0x50] ap_key
+        char[0x20] ap_name
+        uint8_t[6] server_mac
+        char[0x20] server_nickname
+        char[0x10] rp_regist_key
+        uint32_t rp_key_type
+        uint8_t[0x10] rp_key
+        uint32_t console_pin
+
+    ctypedef chiaki_registered_host_t ChiakiRegisteredHost
+
 cdef extern from "chiaki/session.h":
 
     const char* chiaki_rp_application_reason_string(uint32_t reason)
@@ -1099,9 +1132,12 @@ cdef extern from "chiaki/session.h":
         bint  video_profile_auto_downgrade
         bint  enable_keyboard
         bint  enable_dualsense
+        ChiakiDisableAudioVideo audio_video_disabled
+        bint auto_regist
         ChiakiHolepunchSession holepunch_session
         chiaki_socket_t *rudp_sock
         uint8_t[8] psn_account_id #PSN_ACCOUNT_ID_SIZE
+        double packet_loss_max
 
     ctypedef chiaki_connect_info_t ChiakiConnectInfo
 
@@ -1151,8 +1187,8 @@ cdef extern from "chiaki/session.h":
     cdef struct chiaki_trigger_effects_event_t:
         uint8_t type_left
         uint8_t type_right
-        uint8_t left[10]
-        uint8_t right[10]
+        uint8_t[10] left
+        uint8_t[10] right
 
     ctypedef chiaki_trigger_effects_event_t ChiakiTriggerEffectsEvent
 
@@ -1160,27 +1196,44 @@ cdef extern from "chiaki/session.h":
         CHIAKI_EVENT_CONNECTED
         CHIAKI_EVENT_LOGIN_PIN_REQUEST
         CHIAKI_EVENT_HOLEPUNCH
+        CHIAKI_EVENT_REGIST
+        CHIAKI_EVENT_NICKNAME_RECEIVED
         CHIAKI_EVENT_KEYBOARD_OPEN
         CHIAKI_EVENT_KEYBOARD_TEXT_CHANGE
         CHIAKI_EVENT_KEYBOARD_REMOTE_CLOSE
         CHIAKI_EVENT_RUMBLE
         CHIAKI_EVENT_QUIT
         CHIAKI_EVENT_TRIGGER_EFFECTS
+        CHIAKI_EVENT_MOTION_RESET
+        CHIAKI_EVENT_LED_COLOR
+        CHIAKI_EVENT_PLAYER_INDEX
+        CHIAKI_EVENT_HAPTIC_INTENSITY
+        CHIAKI_EVENT_TRIGGER_INTENSITY
 
     cdef struct _ChiakiEvent_ChiakiEvent_chiaki_event_t_login_pin_request_s:
         bint  pin_incorrect
+    
+    cdef struct _ChiakiEvent_ChiakiEvent_chiaki_event_t_data_holepunch_s:
+        bint finished
 
     cdef struct data_holepunch_t:
         bint finished
 
+# https://stackoverflow.com/a/27955307
     cdef struct chiaki_event_t:
         ChiakiEventType type
         ChiakiQuitEvent quit
         ChiakiKeyboardEvent keyboard
         ChiakiRumbleEvent rumble
+        ChiakiRegisteredHost host
         ChiakiTriggerEffectsEvent trigger_effects
+        uint8_t[0x3] led_state
+        uint8_t player_index
+
         _ChiakiEvent_ChiakiEvent_chiaki_event_t_login_pin_request_s login_pin_request
-        data_holepunch_t data_holepunch
+        _ChiakiEvent_ChiakiEvent_chiaki_event_t_data_holepunch_s data_holepunch
+        ChiakiDualSenseEffectIntensity intensity
+        char[0x20] server_nickname
 
     ctypedef chiaki_event_t ChiakiEvent
 
@@ -1301,21 +1354,6 @@ cdef extern from "chiaki/regist.h":
         ChiakiRudp rudp
 
     ctypedef chiaki_regist_info_t ChiakiRegistInfo
-
-    cdef struct chiaki_registered_host_t:
-        ChiakiTarget target
-        char[0x30] ap_ssid
-        char[0x20] ap_bssid
-        char[0x50] ap_key
-        char[0x20] ap_name
-        uint8_t[6] server_mac
-        char[0x20] server_nickname
-        char[0x10] rp_regist_key
-        uint32_t rp_key_type
-        uint8_t[0x10] rp_key
-        uint32_t console_pin
-
-    ctypedef chiaki_registered_host_t ChiakiRegisteredHost
 
     cpdef enum chiaki_regist_event_type_t:
         CHIAKI_REGIST_EVENT_TYPE_FINISHED_CANCELED
