@@ -5,14 +5,17 @@ class EventTimer:
         self.starttime = None
         self.periodic = False
         self.duration = 0.0
-    
+
     # Oneshot if periodic is False, repeating if True, defaults to oneshot
     # Duration in seconds, converted to nanoseconds internally
     def start(self, duration, periodic=False):
         self.starttime = clock_gettime_ns(CLOCK_MONOTONIC)
         self.periodic = periodic
         self.duration = int(duration * 1e9)
-    
+
+    def reset(self):
+        self.starttime = clock_gettime_ns(CLOCK_MONOTONIC)
+
     def stop(self):
         self.starttime = None
         self.periodic = False
