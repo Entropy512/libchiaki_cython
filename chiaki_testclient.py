@@ -13,7 +13,9 @@ import pyformulas as pf
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 from time import time, sleep
+from enum import IntEnum
 import scipy
+import random
 
 import pygame
 
@@ -35,7 +37,7 @@ def print_event(e):
         evfmt = "time {:<16} type {} ({}), code {:<4} ({}), value {}"
         print(evfmt.format(e.timestamp(), e.type, ecodes.EV[e.type], e.code, codename, e.value))
 
-def expo_stick_remap(inscale, outscale,str, dz, value):
+def expo_stick_remap(inscale, outscale, str, dz, value):
     normval = np.sign(value)*max((abs(value)-dz),0)/(inscale-dz)
     mapval = (1-str)*normval + str*np.power(normval,3.0)
     return int(np.clip(mapval, -1.0, 1.0)*outscale)
@@ -146,85 +148,250 @@ Buttons:
 14: Lower left paddle
 Why does xpad give the right paddles lower values than left???
 '''
-def handle_pygame_event(ss,e):
+class SpinWinState(IntEnum):
+    STOPPED = 0
+    SPRINT_PRESSED = 1
+    ATTACK_PRESSED = 2
+    ATTACK_RELEASED = 3
+    SPRINT_RELEASED = 4
+
+class SpinWinMacro():
+    def __init__(self, ss, enabled):
+        self.enabled = enabled
+        self.ss = ss
+        self.state = SpinWinState.STOPPED
+        self.timer = EventTimer()
+
+    def handle_event(self, e):
+        if(self.enabled):
+            match self.state:
+                case SpinWinState.SPRINT_PRESSED:
+                    if(self.timer.check()):
+                        self.ss.HandleButtonEvent(2, JoyButtons.MOON, 1)
+                        self.ss.SendFeedbackState()
+                        self.state = SpinWinState.ATTACK_PRESSED
+                        self.timer.start(0.022, periodic=False)
+                case SpinWinState.ATTACK_PRESSED:
+                    if(self.timer.check()):
+                        self.ss.HandleButtonEvent(2, JoyButtons.MOON, 0)
+                        self.ss.SendFeedbackState()
+                        self.state = SpinWinState.ATTACK_RELEASED
+                        self.timer.start(0.1, periodic=False)
+                case SpinWinState.ATTACK_RELEASED:
+                    if(self.timer.check()):
+                        self.ss.HandleButtonEvent(2, JoyButtons.L1, 0)
+                        self.ss.SendFeedbackState()
+                        self.state = SpinWinState.SPRINT_RELEASED
+                        self.timer.start(0.073, periodic=False)
+                case SpinWinState.SPRINT_RELEASED:
+                    if(self.timer.check()):
+                        self.ss.HandleButtonEvent(2, JoyButtons.L1, 1)
+                        self.ss.SendFeedbackState()
+                        self.state = SpinWinState.SPRINT_PRESSED
+                        self.timer.start(0.02, periodic=False)
+
+            if e is not None:
+                if (e.type == pygame.JOYBUTTONDOWN) or (e.type == pygame.JOYBUTTONUP):
+                    value = (e.type == pygame.JOYBUTTONDOWN)
+                    if(e.button == 11):
+                        if value == 0:
+                            self.state == SpinWinState.STOPPED
+                            self.ss.HandleButtonEvent(2, JoyButtons.L1, 0)
+                            self.ss.HandleButtonEvent(2, JoyButtons.MOON, 0)
+                            self.ss.SendFeedbackState()
+                            self.timer.stop()
+                        else:
+                            self.ss.HandleButtonEvent(2, JoyButtons.L1, 1)
+                            self.ss.SendFeedbackState()
+                            self.state = SpinWinState.SPRINT_PRESSED
+                            self.timer.start(0.022, periodic=False)
+
+                        return True
+                    else:
+                        return False
+
+        return False
+
+class BowSpamState(IntEnum):
+    STOPPED = 0
+    L2_PRESSED = 1
+    ATTACK_PRESSED = 2
+    ATTACK_RELEASED = 3
+
+class BowSpamMacro():
+    def __init__(self, ss, enabled):
+        self.enabled = enabled
+        self.ss = ss
+        self.state = BowSpamState.STOPPED
+        self.timer = EventTimer()
+        self.frametime = 1.0/60
+
+    def handle_event(self, e):
+        if(self.enabled):
+            match self.state:
+                case BowSpamState.L2_PRESSED:
+                    if(self.timer.check()):
+                        self.ss.HandleButtonEvent(2, JoyButtons.MOON, 1)
+                        self.ss.SendFeedbackState()
+                        self.state = BowSpamState.ATTACK_PRESSED
+                        self.timer.start(random.uniform(3*self.frametime,4*self.frametime), periodic=False)
+                        return True
+                case BowSpamState.ATTACK_PRESSED:
+                    if(self.timer.check()):
+                        self.ss.HandleAxisEvent(2, JoyAxes.LZ, 0)
+                        self.ss.HandleButtonEvent(2, JoyButtons.MOON, 0)
+                        self.ss.SendFeedbackState()
+                        self.state = BowSpamState.ATTACK_RELEASED
+                        self.timer.start(random.uniform(3*self.frametime,4*self.frametime), periodic=False)
+                        return True
+                case BowSpamState.ATTACK_RELEASED:
+                    if(self.timer.check()):
+                        self.ss.HandleAxisEvent(2, JoyAxes.LZ, random.randint(224,255))
+                        self.ss.SendFeedbackState()
+                        self.state = BowSpamState.L2_PRESSED
+                        self.timer.start(random.uniform(4*self.frametime,5*self.frametime), periodic=False)
+                        return True
+
+            if e is not None:
+                if (e.type == pygame.JOYBUTTONDOWN) or (e.type == pygame.JOYBUTTONUP):
+                    value = (e.type == pygame.JOYBUTTONDOWN)
+                    if(e.button == 13):
+                        if value == 0:
+                            self.state == BowSpamState.STOPPED
+                            self.ss.HandleAxisEvent(2, JoyAxes.LZ, 0)
+                            self.ss.HandleButtonEvent(2, JoyButtons.MOON, 0)
+                            self.ss.SendFeedbackState()
+                            self.timer.stop()
+                        else:
+                            self.ss.HandleAxisEvent(2, JoyAxes.LZ, random.randint(224,255))
+                            self.ss.HandleButtonEvent(2, JoyButtons.MOON, 0)
+                            self.ss.HandleButtonEvent(0, JoyButtons.L1, 0)
+                            self.ss.HandleButtonEvent(2, JoyButtons.L1, 0)
+                            self.ss.SendFeedbackState()
+                            self.state = BowSpamState.L2_PRESSED
+                            self.timer.start(random.uniform(4*self.frametime,5*self.frametime), periodic=False)
+
+                        return True
+                    else:
+                        return False
+
+        return False
+
+def polar_exprate(x, y, str, dz):
+    r = np.sqrt(x**2 + y**2)
+    phi = np.arctan2(y, x)
+    nr = expo_stick_remap(1.0, 32767, str, dz, r)
+    return(nr*np.cos(phi), nr*np.sin(phi))
+
+def handle_pygame_event(ss, e, reset):
     global joysticks
     if not hasattr(handle_pygame_event, "ievtimer"):
         handle_pygame_event.ievtimer = EventTimer()  # it doesn't exist yet, so initialize it
-        handle_pygame_event.ievtimer.start(0.004, periodic=True)
+        handle_pygame_event.ievtimer.start(0.008, periodic=True)
+    
+    if not hasattr(handle_pygame_event, "stickstates"):
+        handle_pygame_event.stickstates = [0.0, 0.0, 0.0, 0.0]
 
-    if e.type == pygame.JOYDEVICEADDED:
-        # This event will be generated when the program starts for every
-        # joystick, filling up the list without needing to create them manually.
-        joy = pygame.joystick.Joystick(e.device_index)
-        joysticks[joy.get_instance_id()] = joy
-        print(f"Joystick {joy.get_instance_id()} connencted")
+    if(reset):
+        handle_pygame_event.ievtimer.reset()
 
-    if e.type == pygame.JOYDEVICEREMOVED:
-        del joysticks[e.instance_id]
-        print(f"Joystick {e.instance_id} disconnected")
+    if e is not None:
+        if e.type == pygame.JOYDEVICEADDED:
+            # This event will be generated when the program starts for every
+            # joystick, filling up the list without needing to create them manually.
+            joy = pygame.joystick.Joystick(e.device_index)
+            joysticks[joy.get_instance_id()] = joy
+            print(f"Joystick {joy.get_instance_id()} connected")
 
-    if (e.type == pygame.JOYBUTTONDOWN) or (e.type == pygame.JOYBUTTONUP):
-        value = (e.type == pygame.JOYBUTTONDOWN)
-        match e.button:
-            case 8: #Xbox button
-                ss.HandleButtonEvent(0, JoyButtons.TOUCHPAD, value)
-            case 6: #Share?  Select? Guide?
-                ss.HandleButtonEvent(0, JoyButtons.PS, value)
-            case 7: #Hamburger?
-                ss.HandleButtonEvent(0, JoyButtons.OPTIONS, value)
-            case k if k in [9, 14]: #Left thumb or lower left paddle
-                ss.HandleButtonEvent(0, JoyButtons.L3, value)
-            case k if k in [10, 12]: #Right thumb or lower right paddle
-                ss.HandleButtonEvent(0, JoyButtons.R3, value)
-            case k if k in [4, 13]: #LT or upper left paddle
-                ss.HandleButtonEvent(0, JoyButtons.L1, value)
-            case k if k in [5, 11]: #RT or upper right paddle
-                ss.HandleButtonEvent(0, JoyButtons.R1, value)
-            case 0: #A
-                ss.HandleButtonEvent(0, JoyButtons.CROSS, value)
-            case 1: #B
-                ss.HandleButtonEvent(0, JoyButtons.MOON, value)
-            case 2: #X
-                ss.HandleButtonEvent(0, JoyButtons.BOX, value)
-            case 3: #Y
-                ss.HandleButtonEvent(0, JoyButtons.PYRAMID, value)
+        if e.type == pygame.JOYDEVICEREMOVED:
+            del joysticks[e.instance_id]
+            print(f"Joystick {e.instance_id} disconnected")
+
+        if (e.type == pygame.JOYBUTTONDOWN) or (e.type == pygame.JOYBUTTONUP):
+            value = (e.type == pygame.JOYBUTTONDOWN)
+            match e.button:
+                case 8: #Xbox button
+                    ss.HandleButtonEvent(0, JoyButtons["TOUCHPAD"], value)
+                case 6: #Share?  Select? Guide?
+                    ss.HandleButtonEvent(0, JoyButtons["PS"], value)
+                case 7: #Hamburger?
+                    ss.HandleButtonEvent(0, JoyButtons["OPTIONS"], value)
+                case k if k in [9, 13]: #Left thumb or lower left paddle
+                    ss.HandleButtonEvent(0, JoyButtons["L3"], value)
+                case k if k in [10, 14]: #Right thumb or lower right paddle
+                    ss.HandleButtonEvent(0, JoyButtons["R3"], value)
+                case k if k in [4, 11]: #LT or upper left paddle
+                    ss.HandleButtonEvent(0, JoyButtons["L1"], value)
+                case k if k in [5, 12]: #RT or upper right paddle
+                    ss.HandleButtonEvent(0, JoyButtons["R1"], value)
+                case 0: #A
+                    ss.HandleButtonEvent(0, JoyButtons["CROSS"], value)
+                case 1: #B
+                    ss.HandleButtonEvent(0, JoyButtons["MOON"], value)
+                case 2: #X
+                    ss.HandleButtonEvent(0, JoyButtons["BOX"], value)
+                case 3: #Y
+                    ss.HandleButtonEvent(0, JoyButtons["PYRAMID"], value)
 
 
-    if e.type == pygame.JOYAXISMOTION:
-        match e.axis:
-            case 0:
-                ss.HandleAxisEvent(0, JoyAxes.LX, int(expo_stick_remap(1.0, 32767, 0.5, 0.025, e.value)))
-            case 1:
-                ss.HandleAxisEvent(0, JoyAxes.LY, int(expo_stick_remap(1.0, 32767, 0.5, 0.025, e.value)))
-            case 2:
-                ss.HandleAxisEvent(0, JoyAxes.LZ, int(max(0,(e.value+1)*255/2)))
-            case 3:
-                ss.HandleAxisEvent(0, JoyAxes.RX, int(expo_stick_remap(1.0, 32767, 0.5, 0.0, e.value)))
-            case 4:
-                ss.HandleAxisEvent(0, JoyAxes.RY, int(expo_stick_remap(1.0, 32767, 0.5, 0.0, e.value)))
-            case 5:
-                ss.HandleAxisEvent(0, JoyAxes.RZ, int(max(0,(e.value+1)*255/2)))
+        if e.type == pygame.JOYAXISMOTION:
+            match e.axis:
+                case 0:
+                    handle_pygame_event.stickstates[0] = e.value
+                    (mx, my) = polar_exprate(handle_pygame_event.stickstates[0], handle_pygame_event.stickstates[1], 0.5, 0.025)
+                    ss.HandleAxisEvent(0, JoyAxes.LX, int(mx))
+                    ss.HandleAxisEvent(0, JoyAxes.LY, int(my))
+                case 1:
+                    handle_pygame_event.stickstates[1] = e.value
+                    (mx, my) = polar_exprate(handle_pygame_event.stickstates[0], handle_pygame_event.stickstates[1], 0.5, 0.025)
+                    ss.HandleAxisEvent(0, JoyAxes.LX, int(mx))
+                    ss.HandleAxisEvent(0, JoyAxes.LY, int(my))
+                case 2:
+                    ss.HandleAxisEvent(0, JoyAxes.LZ, int(max(0,(e.value+1)*255/2)))
+                case 3:
+                    handle_pygame_event.stickstates[2] = e.value
+                    (mx, my) = polar_exprate(handle_pygame_event.stickstates[2], handle_pygame_event.stickstates[3], 0.5, 0.0)
+                    ss.HandleAxisEvent(0, JoyAxes.RX, int(mx))
+                    ss.HandleAxisEvent(0, JoyAxes.RY, int(my))
+                case 4:
+                    handle_pygame_event.stickstates[3] = e.value
+                    (mx, my) = polar_exprate(handle_pygame_event.stickstates[2], handle_pygame_event.stickstates[3], 0.5, 0.0)
+                    ss.HandleAxisEvent(0, JoyAxes.RX, int(mx))
+                    ss.HandleAxisEvent(0, JoyAxes.RY, int(my))
+                case 5:
+                    ss.HandleAxisEvent(0, JoyAxes.RZ, int(max(0,(e.value+1)*255/2)))
 
-    if e.type == pygame.JOYHATMOTION:
-        if(e.hat == 0):
-                ss.HandleButtonEvent(0, JoyButtons.DPAD_LEFT, (e.value[0] == -1))
-                ss.HandleButtonEvent(0, JoyButtons.DPAD_RIGHT, (e.value[0] == 1))
-                ss.HandleButtonEvent(0, JoyButtons.DPAD_UP, (e.value[1] == 1))
-                ss.HandleButtonEvent(0, JoyButtons.DPAD_DOWN, (e.value[1] == -1))
+        if e.type == pygame.JOYHATMOTION:
+            if(e.hat == 0):
+                    ss.HandleButtonEvent(0, JoyButtons.DPAD_LEFT, (e.value[0] == -1))
+                    ss.HandleButtonEvent(0, JoyButtons.DPAD_RIGHT, (e.value[0] == 1))
+                    ss.HandleButtonEvent(0, JoyButtons.DPAD_UP, (e.value[1] == 1))
+                    ss.HandleButtonEvent(0, JoyButtons.DPAD_DOWN, (e.value[1] == -1))
 
-    if(handle_pygame_event.ievtimer.check()):
-        ss.SendFeedbackState()
+        if(handle_pygame_event.ievtimer.check()):
+            ss.SendFeedbackState()
 
 def haptics_callback(data):
     # requires https://github.com/eric-wieser/numpy_ringbuffer/pull/18
     rbuf.extend(data/32767) #normalize to the equivalent of 1V p-p
     global last_haptic_time
+    global haptics
+    haptics = True
     last_haptic_time = time()
+
+def rumble_callback(lf, hf):
+    global haptics
+    haptics = False
+    global joysticks
+    for joy in joysticks:
+        joysticks[joy].rumble(lf/255.0, hf/255.0, 0)
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--host', required=True,
         help='PS5 to connect to')
+    ap.add_argument('--spinwin', action='store_true', help='Enable Warframe spinwin macro')
+    ap.add_argument('--bowspam', action='store_true', help='Enable Genshin bowspam macro')
 
     args = vars(ap.parse_args())
 
@@ -237,6 +404,10 @@ def main():
     ss = ChiakiStreamSession(host=args['host'], regkey=regkey.data(), rpkey=morning.data())
 
     ss.set_haptics_callback(haptics_callback)
+    ss.set_rumble_callback(rumble_callback)
+
+    spinwin = SpinWinMacro(ss, args['spinwin'])
+    bowspam = BowSpamMacro(ss, args['bowspam'])
 
     if(0):
         xonedev = InputDevice('/dev/input/event20')
@@ -245,7 +416,6 @@ def main():
         fd_to_device = {dev.fd: dev for dev in indevices}
 
     ss.Start()
-
 
     while True:
         if(0): #disable evdev for now, keep the code for potential future use after refactoring
@@ -268,6 +438,10 @@ def main():
                 inchar = sys.stdin.read(1)
                 if(inchar == 'q'):
                     ss.Stop()
+                    # Wait for disconnect.  Otherwise we have a race condition between stopping the streamsession's threads and deleting the object
+                    # This can cause hangs due to contention for the GIL in the event callback
+                    while(ss.connected):
+                        pass
                     return
                 if(inchar == 'p'):
                     plot_pause = True
@@ -278,20 +452,34 @@ def main():
         Handle pygame joystick events
         '''
 
+        macro_handled = False
         for pgevent in pygame.event.get():
-            handle_pygame_event(ss, pgevent)
+            if spinwin.handle_event(pgevent):
+                handle_pygame_event(ss, None, True)
+                macro_handled = True
+            elif bowspam.handle_event(pgevent):
+                handle_pygame_event(ss, None, True)
+                macro_handled = True
+            else:
+                handle_pygame_event(ss, pgevent, False)
 
-        global last_haptic_time
-        if((time() - last_haptic_time) >= 0.04):
-           last_haptic_time = time() - 0.02
-           rbuf.extend(np.zeros(60))
+        if not macro_handled:
+            spinwin.handle_event(None)
+            bowspam.handle_event(None)
 
-        global last_power_time
-        if((time() - last_power_time) >= buffer_time):
-            last_power_time = time()
-            lpow, hpow = get_sigpower(np.array(rbuf))
-            for joy in joysticks.keys():
-                joysticks[joy].rumble(lpow, hpow, int(buffer_time*1000))
+        global haptics
+        if(haptics):
+            global last_haptic_time
+            if((time() - last_haptic_time) >= 0.04):
+                last_haptic_time = time() - 0.02
+                rbuf.extend(np.zeros(60))
+
+            global last_power_time
+            if((time() - last_power_time) >= buffer_time):
+                last_power_time = time()
+                lpow, hpow = get_sigpower(rbuf)
+                for joy in joysticks.keys():
+                    joysticks[joy].rumble(lpow, hpow, int(buffer_time*1000))
 
         global last_plot_time
         if(0):
@@ -352,6 +540,7 @@ try:
 
     last_power_time = time()
     last_haptic_time = time()
+    haptics = False
 
     pygame.init()
     joysticks = {}
