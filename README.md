@@ -5,7 +5,7 @@ WARNING:  This is primarily a project for the purposes of learning Cython.  Use 
 So far I am building a very limited version of Chiaki since I am primarily planning on using it for controller I/O and have no need for video/audio
 
 ```
-cmake -DCHIAKI_ENABLE_GUI=Off -DCHIAKI_LIB_ENABLE_OPUS=Off -DCHIAKI_ENABLE_FFMPEG_DECODER=Off -DCHIAKI_ENABLE_PI_DECODER=Off -DCHIAKI_ENABLE_CLI=On ..
+cmake -DCHIAKI_ENABLE_GUI=Off -DCHIAKI_LIB_ENABLE_OPUS=Off -DCHIAKI_ENABLE_FFMPEG_DECODER=Off -DCHIAKI_ENABLE_PI_DECODER=Off -DCHIAKI_ENABLE_CLI=Off -DBUILD_CURL_EXE=Off -DBUILD_TESTING=Off -DCHIAKI_ENABLE_SPEEX=Off -DCHIAKI_ENABLE_SETSU=Off -DCHIAKI_ENABLE_STEAMDECK_NATIVE=Off ..
 ```
 
 Chiaki can be found at https://git.sr.ht/~thestr4ng3r/chiaki
